@@ -40,22 +40,8 @@ class EntityMove extends PluginBase implements Listener{
     public static $data;
     public static $path;
 
-    public static $shortName = [
-        Cow::NETWORK_ID => "Cow",
-        Pig::NETWORK_ID => "Pig",
-        Sheep::NETWORK_ID => "Sheep",
-        Chicken::NETWORK_ID => "Chicken",
-
-        Zombie::NETWORK_ID => "Zombie",
-        Creeper::NETWORK_ID => "Creeper",
-        Skeleton::NETWORK_ID => "Skeleton",
-        Spider::NETWORK_ID => "Spider",
-        PigZombie::NETWORK_ID => "PigZombie",
-    ];
-
-    public function onEnable(){
-        //if($this->isPhar() === true){
-            $this->yamldata();
+    public function __construct(){
+        if($this->isPhar() === true){
             /*Entity::registerEntity(Cow::class);
             Entity::registerEntity(Pig::class);
             Entity::registerEntity(Sheep::class);
@@ -66,14 +52,18 @@ class EntityMove extends PluginBase implements Listener{
             Entity::registerEntity(Skeleton::class);
             Entity::registerEntity(Spider::class);
             Entity::registerEntity(PigZombie::class);
+        }
+    }
 
+    public function onEnable(){
+        if($this->isPhar() === true){
+            $this->yamldata();
             EntityMove::core()->getPluginManager()->registerEvents($this, $this);
             EntityMove::core()->getScheduler()->scheduleRepeatingTask(new CallbackTask([$this, "SpawningEntity"]), 5);
-
             EntityMove::core()->getLogger()->info(TextFormat::GOLD . "[EntityMove]플러그인이 활성화 되었습니다");
-        /*}else{
+        }else{
              EntityMove::core()->getLogger()->info(TextFormat::GOLD . "[EntityMove]플러그인을 Phar파일로 변환해주세요");
-         }*/
+        }
     }
 
     public static function getEntityDefaultHealth(Entity $entity){
@@ -131,12 +121,11 @@ class EntityMove extends PluginBase implements Listener{
     }
 
     /**
-     * @param int|string $type
+     * @param string $type
      * @param Position $source
      *
      * @return bool|Entity
      */
-
     public static function createEntity($type, Position $source){
         $nbt = new Compound("", [
             "Pos" => new Enum("Pos", [
@@ -155,7 +144,7 @@ class EntityMove extends PluginBase implements Listener{
             ]),
         ]);
         $chunk = $source->getLevel()->getChunk($source->getX() >> 4, $source->getZ() >> 4);
-        $entity = Entity::createEntity(is_int($type) ? self::$shortName[$type] : $type, $chunk, $nbt);
+        $entity = Entity::createEntity($type, $chunk, $nbt);
         try{
             $entity->setHealth(self::getEntityDefaultHealth($entity));
             return $entity;
@@ -171,8 +160,20 @@ class EntityMove extends PluginBase implements Listener{
             if(mt_rand(0, 3) == 0 or $player = null) $player = $players;
         }
         if($player === null or $player->getLevel() === null) return;
-        $ani = mt_rand(10, 13);
-        $mob = mt_rand(32, 36);
+        $shortName = [
+            Cow::NETWORK_ID => "Cow",
+            Pig::NETWORK_ID => "Pig",
+            Sheep::NETWORK_ID => "Sheep",
+            Chicken::NETWORK_ID => "Chicken",
+        
+            Zombie::NETWORK_ID => "Zombie",
+            Creeper::NETWORK_ID => "Creeper",
+            Skeleton::NETWORK_ID => "Skeleton",
+            Spider::NETWORK_ID => "Spider",
+            PigZombie::NETWORK_ID => "PigZombie",
+        ];
+        $ani = $shortName[mt_rand(10, 13)];
+        $mob = $shortName[mt_rand(32, 36)];
         $level = $player->getLevel();
         $position = new Position($player->x + mt_rand(-20, 20), $player->y + mt_rand(-20, 20), $player->z + mt_rand(-20, 20), $level);
         if(
@@ -201,10 +202,11 @@ class EntityMove extends PluginBase implements Listener{
         if($item->getID() === Item::SPAWN_EGG){
             $entity = EntityMove::createEntity($item->getDamage(), $pos);
             if($entity instanceof Entity) $entity->spawnToAll();
-            $item->count -= 1;
-            $ev->getPlayer()->getInventory()->setItemInHand($item);
+            if($ev->getPlayer()->isSurvival()){
+                $item->count -= 1;
+                $ev->getPlayer()->getInventory()->setItemInHand($item);
+            }
             $ev->setCancelled();
-            return;
         }
     }
 
@@ -220,6 +222,10 @@ class EntityMove extends PluginBase implements Listener{
                 break;
             case "스폰":
                 if(!$i instanceof Player) return true;
+                if(gettype($sub[0]) != "string"){
+                    $output .= "엔티티이름이 올바르지 않습니다"
+                    break;
+                }
                 $output .= "몬스터가 소환되었어요";
                 $pos = $i->getPosition();
                 if(count($sub) >= 4) $pos = new Position($sub[1], $sub[2], $sub[3], $i->getLevel());
