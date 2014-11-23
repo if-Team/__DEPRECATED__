@@ -40,43 +40,42 @@ class Spider extends Monster{
             return false;
         }
 
-        $this->moveTime++;
         $this->attackDelay++;
+        if($this->knockBackCheck()) return true;
 
-        if ($this->knockBackCheck()) return;
-		
-		$target = $this->getTarget();
-		$x = $target->x - $this->x;
-		$y = $target->y - $this->y;
-		$z = $target->z - $this->z;
-		$atn = atan2($z, $x);
-		if ($this->onGround) {
-			$this->move(cos($atn) * 0.12, 0, sin($atn) * 0.12);
-		} else {
-			$this->move(cos($atn) * 0.1, -0.241, sin($atn) * 0.1);
-		}
-		$this->setRotation(rad2deg($atn - M_PI_2), rad2deg(-atan2($y, sqrt(pow($x, 2) + pow($z, 2)))));
-		if ($target instanceof Player) {
-			if($this->attackDelay >= 16 && $this->distance($target) <= 1.1){
-				$this->attackDelay = 0;
-				$damage = [0, 2, 2, 3];
-				$ev = new EntityDamageByEntityEvent($this, $target, EntityDamageEvent::CAUSE_ENTITY_ATTACK, $damage[EntityMove::core()->getDifficulty()]);
-				$target->attack($ev->getFinalDamage(), $ev);
-			}
-		} else {
-			if ($this->distance($target) <= 1) {
-				$this->moveTime = 500;
-			} elseif ($this->x === $this->lastX or $this->z === $this->lastZ) {
-				$this->moveTime += 20;
-			}
-		}
+        $this->moveTime++;
+        $target = $this->getTarget();
+        $x = $target->x - $this->x;
+        $y = $target->y - $this->y;
+        $z = $target->z - $this->z;
+        $atn = atan2($z, $x);
+        if ($this->onGround) {
+            $this->move(cos($atn) * 0.12, 0, sin($atn) * 0.12);
+        } else {
+            $this->move(cos($atn) * 0.1, -0.28, sin($atn) * 0.1);
+        }
+        $this->setRotation(rad2deg($atn - M_PI_2), rad2deg(-atan2($y, sqrt(pow($x, 2) + pow($z, 2)))));
+        if ($target instanceof Player) {
+            if($this->attackDelay >= 16 && $this->distance($target) <= 1.1){
+                $this->attackDelay = 0;
+                $damage = [0, 2, 2, 3];
+                $ev = new EntityDamageByEntityEvent($this, $target, EntityDamageEvent::CAUSE_ENTITY_ATTACK, $damage[EntityMove::core()->getDifficulty()]);
+                $target->attack($ev->getFinalDamage(), $ev);
+            }
+        } else {
+            if ($this->distance($target) <= 1) {
+                $this->moveTime = 500;
+            } elseif ($this->x === $this->lastX or $this->z === $this->lastZ) {
+                $this->moveTime += 20;
+            }
+        }
 
         $this->entityBaseTick();
         $this->updateMovement();
         return true;
     }
 
-	protected function initEntity(){
-		$this->namedtag->id = new String("id", "Spider");
-	}
+    protected function initEntity(){
+        $this->namedtag->id = new String("id", "Spider");
+    }
 }
