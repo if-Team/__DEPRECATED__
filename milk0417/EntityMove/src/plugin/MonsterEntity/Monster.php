@@ -24,8 +24,9 @@ abstract class Monster extends MonsterEntity{
 
     protected $attackDelay = 0;
 
-    private $hphit = [false, 0];
-	
+    /** @var Entity|null */
+    protected $attacker = null;
+
     public function updateMovement(){
         $this->lastX = $this->x;
         $this->lastY = $this->y;
@@ -60,63 +61,62 @@ abstract class Monster extends MonsterEntity{
         }
     }
 
+    public function knockBack(Entity $attacker, $damage, $x, $z){
+
+    }
+
     public function attack($damage, $source = EntityDamageEvent::CAUSE_MAGIC){
-        $health = $this->getHealth();
+        if($this->attacker instanceof Entity) return;
         parent::attack($damage, $source);
-        if ($source instanceof EntityDamageByEntityEvent and ($health - $damage) == $this->getHealth()) {
-            $this->hphit = [$source->getDamager(), 3];
+        if($source instanceof EntityDamageByEntityEvent and !$source->isCancelled()){
+            $this->moveTime = 4;
+            $this->attacker = $source->getDamager();
         }
     }
 
     public function knockBackCheck(){
+        if (!$this->attacker instanceof Entity) return false;
 
-        if (!$this->hphit[0] instanceof Entity) return false;
-
-        $target = $this->hphit[0];
-        if ($this->hphit[1] > 0) {
-            $this->hphit[1]--;
-        } else {
-            $this->hphit = [false, 0];
-        }
+        $this->moveTime--;
+        $target = $this->attacker;
 
         $x = $target->x - $this->x;
         $y = $target->y - $this->y;
         $z = $target->z - $this->z;
         $atn = atan2($z, $x);
-        $this->move(cos($atn) * -0.9, 0.43, sin($atn) * -0.9);
-        $this->setRotation(rad2deg(atan2($z, $x) - M_PI_2), rad2deg(-atan2($y, sqrt(pow($x, 2) + pow($z, 2)))));
+        $this->move(cos($atn) * -0.8, 0.6, sin($atn) * -0.8);
+        $this->setRotation(rad2deg(atan2($z, $x) - M_PI_2), rad2deg(-atan2($y, sqrt($x ** 2 + $z ** 2))));
 
         $this->entityBaseTick();
         $this->updateMovement();
+        if($this->moveTime <= 0) $this->attacker = null;
         return true;
-
     }
 
     /**
      * return Player|Vector3
      */
-
     public function getTarget(){
         $target = $this->target;
         $nearDistance = PHP_INT_MAX;
         if($target instanceof Player and !$target->dead and !$target->closed && $this->distance($target) <= 7.2){
             return $target;
         }
-		foreach($this->hasSpawned as $p){
-			if(($distance = $this->distance($p)) <= 7.2 and $p->spawned and $p->isSurvival()){
-				if($distance < $nearDistance){
-					$nearDistance = $distance;
-					$target = $p;
-				}
-			}
-		}
-		if($target instanceof Player && !$target->dead and !$target->closed){
-			return $this->target = $target;
-		}elseif($this->moveTime >= 400 or !$target instanceof Vector3){
-			$this->moveTime = 0;
-			return $this->target = new Vector3($this->x + mt_rand(-100, 100), $this->y, $this->z + mt_rand(-100,100));
-		}
-		return $target;
+        foreach($this->hasSpawned as $p){
+            if(($distance = $this->distance($p)) <= 7.2 and $p->spawned and $p->isSurvival()){
+                if($distance < $nearDistance){
+                    $nearDistance = $distance;
+                    $target = $p;
+                }
+            }
+        }
+        if($target instanceof Player && !$target->dead and !$target->closed){
+            return $this->target = $target;
+        }elseif($this->moveTime >= mt_rand(400, 800) or !$target instanceof Vector3){
+            $this->moveTime = 0;
+            return $this->target = new Vector3($this->x + mt_rand(-100, 100), $this->y, $this->z + mt_rand(-100,100));
+        }
+        return $target;
     }
     
     public function getData(){
