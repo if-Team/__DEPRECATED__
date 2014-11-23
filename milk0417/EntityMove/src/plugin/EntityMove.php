@@ -17,15 +17,13 @@ use plugin\MonsterEntity\Skeleton;
 use plugin\MonsterEntity\Spider;
 use plugin\MonsterEntity\Zombie;
 
-use pocketmine\entity\Entity;
-use pocketmine\event\player\PlayerInteractEvent;
-use pocketmine\item\Item;
 use pocketmine\Player;
 use pocketmine\Server;
+use pocketmine\item\Item;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\Enum;
 use pocketmine\nbt\tag\Float;
-use pocketmine\nbt\tag\Short;
+use pocketmine\entity\Entity;
 use pocketmine\level\Position;
 use pocketmine\nbt\tag\Double;
 use pocketmine\event\Listener;
@@ -35,47 +33,67 @@ use pocketmine\utils\TextFormat;
 use pocketmine\plugin\PluginBase;
 use pocketmine\command\CommandSender;
 use pocketmine\scheduler\CallbackTask;
+use pocketmine\event\player\PlayerInteractEvent;
 
 class EntityMove extends PluginBase implements Listener{
-
-    const SLIME = 37;
-    const ENDERMAN = 38;
-    const SILVERFISH = 39;
-
-    const ARROW = 80;
-    const SNWOBALL = 81;
-    const EGG = 82;
-    const MINECART = 84;
 
     public static $data;
     public static $path;
 
-    public static $health = [
-        Cow::NETWORK_ID => 10,
-        Pig::NETWORK_ID => 10,
-        Sheep::NETWORK_ID => 8,
-        Chicken::NETWORK_ID => 4,
+    public static $shortName = [
+        Cow::NETWORK_ID => "Cow",
+        Pig::NETWORK_ID => "Pig",
+        Sheep::NETWORK_ID => "Sheep",
+        Chicken::NETWORK_ID => "Chicken",
 
-        Zombie::NETWORK_ID => 20,
-        Creeper::NETWORK_ID => 20,
-        Skeleton::NETWORK_ID => 20,
-        Spider::NETWORK_ID => 16,
-        PigZombie::NETWORK_ID => 22,
-        EntityMove::SLIME => 20,
-        EntityMove::ENDERMAN => 20,
-        EntityMove::SILVERFISH => 20,
+        Zombie::NETWORK_ID => "Zombie",
+        Creeper::NETWORK_ID => "Creeper",
+        Skeleton::NETWORK_ID => "Skeleton",
+        Spider::NETWORK_ID => "Spider",
+        PigZombie::NETWORK_ID => "PigZombie",
     ];
 
     public function onEnable(){
-       /*if($this->isPhar() === true){
-            EntityMove::core()->getLogger()->info(TextFormat::GOLD . "[EntityMove]플러그인이 활성화 되었습니다"
-       }else{
-            EntityMove::core()->getLogger()->info(TextFormat::GOLD . "[EntityMove]플러그인을 Phar파일로 변환해주세요");
-        }*/
-        $this->yamldata();
-        EntityMove::core()->getPluginManager()->registerEvents($this, $this);
-        EntityMove::core()->getLogger()->info(TextFormat::GOLD . "[EntityMove]플러그인이 활성화 되었습니다");
-        EntityMove::core()->getScheduler()->scheduleRepeatingTask(new CallbackTask([$this, "SpawningEntity"]), 5);
+        //if($this->isPhar() === true){
+            $this->yamldata();
+            /*Entity::registerEntity(Cow::class);
+            Entity::registerEntity(Pig::class);
+            Entity::registerEntity(Sheep::class);
+            Entity::registerEntity(Chicken::class);*/
+
+            Entity::registerEntity(Zombie::class);
+            Entity::registerEntity(Creeper::class);
+            Entity::registerEntity(Skeleton::class);
+            Entity::registerEntity(Spider::class);
+            Entity::registerEntity(PigZombie::class);
+
+            EntityMove::core()->getPluginManager()->registerEvents($this, $this);
+            EntityMove::core()->getScheduler()->scheduleRepeatingTask(new CallbackTask([$this, "SpawningEntity"]), 5);
+
+            EntityMove::core()->getLogger()->info(TextFormat::GOLD . "[EntityMove]플러그인이 활성화 되었습니다");
+        /*}else{
+             EntityMove::core()->getLogger()->info(TextFormat::GOLD . "[EntityMove]플러그인을 Phar파일로 변환해주세요");
+         }*/
+    }
+
+    public static function getEntityDefaultHealth(Entity $entity){
+        try{
+            $health = [
+                Cow::NETWORK_ID => 10,
+                Pig::NETWORK_ID => 10,
+                Sheep::NETWORK_ID => 8,
+                Chicken::NETWORK_ID => 4,
+
+                Zombie::NETWORK_ID => 20,
+                Creeper::NETWORK_ID => 20,
+                Skeleton::NETWORK_ID => 20,
+                Spider::NETWORK_ID => 16,
+                PigZombie::NETWORK_ID => 22,
+            ];
+            return $health[$entity::NETWORK_ID];
+        }catch (\Exception $e){
+            return 20;
+        }
     }
 
     public static function yaml($file){
@@ -113,17 +131,14 @@ class EntityMove extends PluginBase implements Listener{
     }
 
     /**
-     * @param int|String $network_id
+     * @param int|string $type
      * @param Position $source
-     * 
+     *
      * @return bool|Entity
      */
-    
-    public static function createEntity($network_id, Position $source){
-        if($source->getLevel()->isChunkGenerated($source->getX(), $source->getZ())){
-            $source->getLevel()->generateChunk($source->getX(), $source->getZ());
-        }
-        $compo = new Compound("", [
+
+    public static function createEntity($type, Position $source){
+        $nbt = new Compound("", [
             "Pos" => new Enum("Pos", [
                 new Double("", $source->x),
                 new Double("", $source->y),
@@ -138,26 +153,14 @@ class EntityMove extends PluginBase implements Listener{
                 new Float("", 0),
                 new Float("", 0)
             ]),
-            "Health" => new Short("Health", isset(EntityMove::$health[$network_id]) ? EntityMove::$health[$network_id] : 20),
         ]);
         $chunk = $source->getLevel()->getChunk($source->getX() >> 4, $source->getZ() >> 4);
-        switch($network_id){
-            case Zombie::NETWORK_ID;
-                return new Zombie($chunk, $compo);
-                break;
-            case Skeleton::NETWORK_ID;
-                return new Skeleton($chunk, $compo);
-                break;
-            case Creeper::NETWORK_ID;
-                return new Creeper($chunk, $compo);
-                break;
-            case PigZombie::NETWORK_ID;
-                return new PigZombie($chunk, $compo);
-                break;
-            case Spider::NETWORK_ID;
-                return new Spider($chunk, $compo);
-            default:
-                return false;
+        $entity = Entity::createEntity(is_int($type) ? self::$shortName[$type] : $type, $chunk, $nbt);
+        try{
+            $entity->setHealth(self::getEntityDefaultHealth($entity));
+            return $entity;
+        }catch (\Exception $e){
+            return null;
         }
     }
 
@@ -169,9 +172,9 @@ class EntityMove extends PluginBase implements Listener{
         }
         if($player === null or $player->getLevel() === null) return;
         $ani = mt_rand(10, 13);
-        $mob = mt_rand(32, 38);
+        $mob = mt_rand(32, 36);
         $level = $player->getLevel();
-        $position = new Position($player->x + mt_rand(-30, 30), $player->y + mt_rand(-20, 20), $player->z + mt_rand(-30, 30), $level);
+        $position = new Position($player->x + mt_rand(-20, 20), $player->y + mt_rand(-20, 20), $player->z + mt_rand(-20, 20), $level);
         if(
             $level->getBlock($position)->isSolid !== true
             && $level->getBlock(new Vector3($position->x, $position->y - 1, $position->z))->isSolid === true
@@ -204,7 +207,7 @@ class EntityMove extends PluginBase implements Listener{
             return;
         }
     }
-	
+
     public function onCommand(CommandSender $i, Command $cmd, $label, array $sub){
         $output = "[EntityMove]";
         switch($cmd->getName()){
@@ -218,7 +221,9 @@ class EntityMove extends PluginBase implements Listener{
             case "스폰":
                 if(!$i instanceof Player) return true;
                 $output .= "몬스터가 소환되었어요";
-                EntityMove::createEntity($sub[0], $i);
+                $pos = $i->getPosition();
+                if(count($sub) >= 4) $pos = new Position($sub[1], $sub[2], $sub[3], $i->getLevel());
+                EntityMove::createEntity($sub[0], $pos);
                 break;
         }
         $i->sendMessage($output);
