@@ -1,6 +1,5 @@
 <?php
 
-
 namespace plugin\MonsterEntity;
 
 use pocketmine\entity\Entity;
@@ -22,9 +21,9 @@ class Skeleton extends Monster implements ProjectileSource{
     public $length = 0.6;
     public $height = 1.8;
 
-	protected function initEntity(){
-		$this->namedtag->id = new String("id", "Skeleton");
-	}
+    protected function initEntity(){
+        $this->namedtag->id = new String("id", "Skeleton");
+    }
 
     public function getName(){
         return "스켈레톤";
@@ -50,62 +49,61 @@ class Skeleton extends Monster implements ProjectileSource{
             return false;
         }
 
-        $this->moveTime++;
         $this->attackDelay++;
+        if($this->knockBackCheck()) return true;
 
-        if ($this->knockBackCheck()) return;
-		
-		$target = $this->getTarget();
-		$x = $target->x - $this->x;
-		$y = $target->y - $this->y;
-		$z = $target->z - $this->z;
-		$atn = atan2($z, $x);
-		if ($this->onGround) {
-			$this->move(cos($atn) * 0.12, 0, sin($atn) * 0.12);
-		} else {
-			$this->move(cos($atn) * 0.1, -0.241, sin($atn) * 0.1);
-		}
-		$this->setRotation(rad2deg($atn - M_PI_2), rad2deg(-atan2($y, sqrt(pow($x, 2) + pow($z, 2)))));
-		if ($target instanceof Player) {
-			if ($this->attackDelay >= 16 && $this->distance($target) <= (mt_rand(40, 65) / 10) and mt_rand(1,19) <= 2) {
-				$this->attackDelay = 0;
-				$f = 1.5;
-				$pt = $this->pitch + mt_rand(-40, 40) / 10;
-				$yw = $this->yaw + mt_rand(-80, 80) / 10;
-				$nbt = new Compound("", [
-					"Pos" => new Enum("Pos", [
-						new Double("", $this->x),
-						new Double("", $this->y + 1.62),
-						new Double("", $this->z)
-					]),
-					"Motion" => new Enum("Motion", [
-						new Double("", -sin($yw / 180 * M_PI) * cos($pt / 180 * M_PI) * $f),
-						new Double("", -sin($pt / 180 * M_PI) * $f),
-						new Double("", cos($yw / 180 * M_PI) * cos($pt / 180 * M_PI) * $f)
-					]),
-					"Rotation" => new Enum("Rotation", [
-						new Float("", $yw),
-						new Float("", $pt)
-					]),
-				]);
-				$arrow = Entity::createEntity("Arrow", $this->chunk, $nbt, $this);
+        $this->moveTime++;
+        $target = $this->getTarget();
+        $x = $target->x - $this->x;
+        $y = $target->y - $this->y;
+        $z = $target->z - $this->z;
+        $atn = atan2($z, $x);
+        if ($this->onGround) {
+            $this->move(cos($atn) * 0.12, 0, sin($atn) * 0.12);
+        } else {
+            $this->move(cos($atn) * 0.1, -0.28, sin($atn) * 0.1);
+        }
+        $this->setRotation(rad2deg($atn - M_PI_2), rad2deg(-atan2($y, sqrt(pow($x, 2) + pow($z, 2)))));
+        if ($target instanceof Player) {
+            if ($this->attackDelay >= 16 && $this->distance($target) <= (mt_rand(40, 65) / 10) and mt_rand(1,19) <= 2) {
+                $this->attackDelay = 0;
+                $f = 1.5;
+                $pt = $this->pitch + mt_rand(-40, 40) / 10;
+                $yw = $this->yaw + mt_rand(-80, 80) / 10;
+                $nbt = new Compound("", [
+                    "Pos" => new Enum("Pos", [
+                        new Double("", $this->x),
+                        new Double("", $this->y + 1.62),
+                        new Double("", $this->z)
+                    ]),
+                    "Motion" => new Enum("Motion", [
+                        new Double("", -sin($yw / 180 * M_PI) * cos($pt / 180 * M_PI) * $f),
+                        new Double("", -sin($pt / 180 * M_PI) * $f),
+                        new Double("", cos($yw / 180 * M_PI) * cos($pt / 180 * M_PI) * $f)
+                    ]),
+                    "Rotation" => new Enum("Rotation", [
+                        new Float("", $yw),
+                        new Float("", $pt)
+                    ]),
+                ]);
+                $arrow = Entity::createEntity("Arrow", $this->chunk, $nbt, $this);
 
-				$ev = new EntityShootBowEvent($this, Item::get(Item::ARROW, 0, 1), $arrow, $f);
+                $ev = new EntityShootBowEvent($this, Item::get(Item::ARROW, 0, 1), $arrow, $f);
 
-				$this->server->getPluginManager()->callEvent($ev);
-				if($ev->isCancelled()){
-					$arrow->kill();
-				}else{
-					$arrow->spawnToAll();
-				}
-			}
-		} else {
-			if ($this->distance($target) <= 1) {
-				$this->moveTime = 500;
-			} elseif ($this->x === $this->lastX or $this->z === $this->lastZ) {
-				$this->moveTime += 20;
-			}
-		}
+                $this->server->getPluginManager()->callEvent($ev);
+                if($ev->isCancelled()){
+                    $arrow->kill();
+                }else{
+                    $arrow->spawnToAll();
+                }
+            }
+        } else {
+            if ($this->distance($target) <= 1) {
+                $this->moveTime = 500;
+            } elseif ($this->x === $this->lastX or $this->z === $this->lastZ) {
+                $this->moveTime += 20;
+            }
+        }
 
         $this->entityBaseTick();
         $this->updateMovement();
