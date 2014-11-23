@@ -50,7 +50,7 @@ abstract class Animal extends AnimalEntity{
 
             $pk = new RemoveEntityPacket();
             $pk->eid = $this->id;
-            $this->server->getScheduler()->scheduleDelayedTask(new CallbackTask($player, "dataPacket", [$pk]), 23);
+            $this->server->getScheduler()->scheduleDelayedTask(new CallbackTask([$player, "dataPacket"], [$pk]), 23);
             unset($this->hasSpawned[$player->getID()]);
         }
     }
@@ -123,7 +123,6 @@ abstract class Animal extends AnimalEntity{
     /**
      * @return Player|Vector3
      */
-
     public abstract function getTarget();
     
     public function getData(){
