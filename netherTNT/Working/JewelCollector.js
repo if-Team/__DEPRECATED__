@@ -29,10 +29,10 @@ function newLevel(){
     eval(code);//JewelCollector≒AniPang
     if(!overlappingCheck){
         ModPE.setItem(501,"blaze_rod",0,"GameSetter",0);
-        Item.setItemCategory(501,ItemCategory.TOOL);
+        Item.setCategory(501,ItemCategory.TOOL);
         ModPE.setItem(502,"blaze_powder",0,"JewelSellecter",0);
-        Item.setItemCategory(502,ItemCategory.TOOL);
-        Player.addItemCreaticeInv(501,5,0);
+        Item.setCategory(502,ItemCategory.TOOL);
+        Player.addItemCreativeInv(501,5,0);
         Player.addItemCreativeInv(502,5,0);
         overlappingCheck=true;
     }
@@ -53,7 +53,7 @@ check.horizontal.getFirstJewel=function(x,y,z){
 check.horizontal.getCount=function(x,y,z){
     var count=1;
     while(true){
-        if(getTile(x,y,z)==check.horizontal.next(x,y,z){
+        if(getTile(x,y,z)==check.horizontal.next(x,y,z)){
             count++;
             x++;
         }
@@ -133,10 +133,12 @@ function useItem(x,y,z,item,block)
     if(item==502){
         if(!selectedJewel.first){
             selectedJewel.first={block:getTile(x,y,z),x:x,y:y,z:z};
+			print("First selected");
         }
         else{
 			if(Math.abs(selectedJewel.first.x-x)==1||Math.abs(selectedJewel.first.z-z)==1){
                 selectedJewel.second={block:getTile(x,y,z),x:x,y:y,z:z};
+				print("Second selected");
                 setTile(selectedJewel.first.x,selectedJewel.first.y,selectedJewel.first.z,selectedJewel.second.block);
                 setTile(selectedJewel.second.x,selectedJewel.second.y,selectedJewel.second.z,selectedJewel.first.block);
 		    	if(selectedJewel.first.x-selectedJewel.second.x!=0){
@@ -144,7 +146,7 @@ function useItem(x,y,z,item,block)
 				        while(true){
 							Level.destroyBlock(x,y,z,false);
 							x--;
-							if(x==check.horizontal.getFirstJewel(x+1,y,z)){
+							if(x==check.horizontal.getFirstJewel(x,y,z)){
 								break;
 							}
 						}
@@ -155,7 +157,7 @@ function useItem(x,y,z,item,block)
 					    while(true){
 							Level.destroyBlock(x,y,z);
 							z--;
-							if(z==check.vertical.getFirstJewel(x,y,z+1)){
+							if(z==check.vertical.getFirstJewel(x,y,z)){
 								break;
 							}
 						}
