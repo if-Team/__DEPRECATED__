@@ -1,4 +1,4 @@
-/*Do not operate if the directory exists*/
+/* Do not operate if the directory exists */
 
 function unZip(zip,unzip) 
 {
