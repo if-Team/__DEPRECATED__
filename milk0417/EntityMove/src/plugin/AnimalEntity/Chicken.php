@@ -10,9 +10,9 @@ use pocketmine\Player;
 class Chicken extends Animal{
     const NETWORK_ID = 10;
 
-	protected function initEntity(){
-		$this->namedtag->id = new String("id", "Chicken");
-	}
+    protected function initEntity(){
+        $this->namedtag->id = new String("id", "Chicken");
+    }
 
     public function getTarget(){
         $target = $this->target;
