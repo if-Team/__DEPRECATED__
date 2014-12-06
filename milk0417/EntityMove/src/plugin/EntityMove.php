@@ -160,20 +160,8 @@ class EntityMove extends PluginBase implements Listener{
             if(mt_rand(0, 3) == 0 or $player = null) $player = $players;
         }
         if($player === null or $player->getLevel() === null) return;
-        $shortName = [
-            Cow::NETWORK_ID => "Cow",
-            Pig::NETWORK_ID => "Pig",
-            Sheep::NETWORK_ID => "Sheep",
-            Chicken::NETWORK_ID => "Chicken",
-        
-            Zombie::NETWORK_ID => "Zombie",
-            Creeper::NETWORK_ID => "Creeper",
-            Skeleton::NETWORK_ID => "Skeleton",
-            Spider::NETWORK_ID => "Spider",
-            PigZombie::NETWORK_ID => "PigZombie",
-        ];
-        $ani = $shortName[mt_rand(10, 13)];
-        $mob = $shortName[mt_rand(32, 36)];
+        $shortName = ["Cow", "Pig", "Sheep", "Chicken", "Zombie", "Creeper", "Skeleton", "Spider", "PigZombie"];
+        $ent = $shortName[mt_rand(0, 9)];
         $level = $player->getLevel();
         $position = new Position($player->x + mt_rand(-20, 20), $player->y + mt_rand(-20, 20), $player->z + mt_rand(-20, 20), $level);
         if(
@@ -184,13 +172,15 @@ class EntityMove extends PluginBase implements Listener{
         ){
             if(mt_rand(1,20) <= 5){
                 if(EntityMove::$data["SpawnMonster"] == true) {
-                    $entity = EntityMove::createEntity($mob, $position);
-                    if($entity instanceof Entity) $entity->spawnToAll();
+                    $entity = EntityMove::createEntity($ent, $position);
+                    if($entity instanceof Monster) $entity->spawnToAll();
+                    elseif($entity instanceof Animal) $entity->kill();
                 }
             }else{
                 if(EntityMove::$data["SpawnAnimal"] == true) {
-                    $entity =  EntityMove::createEntity($ani, $position);
-                    if($entity instanceof Entity) $entity->spawnToAll();
+                    $entity =  EntityMove::createEntity($ent, $position);
+                    if($entity instanceof Animal) $entity->spawnToAll();
+                    elseif($entity instanceof Monster) $entity->kill();
                 }
             }
         }
@@ -223,7 +213,7 @@ class EntityMove extends PluginBase implements Listener{
             case "스폰":
                 if(!$i instanceof Player) return true;
                 if(gettype($sub[0]) != "string"){
-                    $output .= "엔티티이름이 올바르지 않습니다"
+                    $output .= "엔티티 이름이 올바르지 않습니다";
                     break;
                 }
                 $output .= "몬스터가 소환되었어요";
