@@ -42,10 +42,10 @@ class EntityMove extends PluginBase implements Listener{
 
     public function __construct(){
         if($this->isPhar() === true){
-            /*Entity::registerEntity(Cow::class);
+            Entity::registerEntity(Cow::class);
             Entity::registerEntity(Pig::class);
             Entity::registerEntity(Sheep::class);
-            Entity::registerEntity(Chicken::class);*/
+            Entity::registerEntity(Chicken::class);
 
             Entity::registerEntity(Zombie::class);
             Entity::registerEntity(Creeper::class);
