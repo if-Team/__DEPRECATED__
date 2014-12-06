@@ -108,7 +108,7 @@ abstract class Animal extends AnimalEntity{
                 }
             }else{
                 if ($this->distance($target) <= 1) {
-                    $this->moveTime = 500;
+                    $this->moveTime = 800;
                 } else if ($this->x === $this->lastX or $this->z === $this->lastZ) {
                     $this->moveTime += 20;
                 }
