@@ -1,0 +1,22 @@
+name: DamageBlock
+main: DeBePlugins\DamageBlock\DamageBlock
+version: DeBe
+api: [1.6.0]
+author: DeBe
+
+commands:
+ damageblock:
+  permission: debe.damageblock.cmd
+  description: DamageBlock - Command
+  usage: /DamageBlock <Add|Del|Reset|List>
+
+permissions:
+ debe:
+  default: op
+  description: DeBePlugins
+  children:
+   debe.damageblock.cmd:
+    description: DamageBlock - Command
+   debe.damageblock.inv:
+    default: off
+    description: DamageBlock - Invincibility fo DamageBlock

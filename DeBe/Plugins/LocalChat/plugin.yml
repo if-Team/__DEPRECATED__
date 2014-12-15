@@ -1,0 +1,21 @@
+name: LocalChat
+main: DeBePlugins\LocalChat\LocalChat
+version: DeBe
+api: [1.6.0]
+author: DeBe
+
+commands:
+ localchat:
+  permission: debe.localchat.cmd
+  description: LocalChat - Command
+  usage: /LocalChat <Local>
+
+permissions:
+ debe.op:
+  default: op
+  description: DeBePlugins
+  children:
+   debe.localchat.cmd:
+    description: LocalChat - Command
+   debe.localchat.hear:
+    description: LocalChat - Hear the chat of far place

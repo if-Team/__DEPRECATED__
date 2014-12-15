@@ -19,16 +19,14 @@ class Fly extends PluginBase implements Listener{
 	public function onCommand(CommandSender $sender, Command $cmd, $label, array $sub){
 		$ik = $this->isKorean();
 		$fly = $this->fly;
-		switch(strtolower($cmd)){
-			case "fly":
-				if($fly["Fly"]) $b = false;
-				else $b = true;
-				$fly["Fly"] = $b;
-				$m = "[Fly]" . ($b ? ($ik ? "플라이 킥을 켭니다." : "Fly kick is On") : ($ik ? "플라이킥을 끕니다." : "Fly kick is Off"));
-			break;
+		if($fly["Fly"]) $b = false;
+		else $b = true;
+		$fly["Fly"] = $b;
+		$m = "[Fly] " . ($ik ? "플라이킥을 " : "Fly kick is ") . ($b ? ($ik ? "켭니다." : "On") : ($ik ? "끕니다." : "Off"));
+		if($this->fly !== $fly){
+			$this->fly = $fly;
+			$this->saveYml();
 		}
-		$this->fly = $fly;
-		$this->saveYml();
 		$this->getServer()->broadCastMessage($m);
 		return true;
 	}
@@ -46,10 +44,11 @@ class Fly extends PluginBase implements Listener{
 		$fly = new Config($this->getServer()->getDataPath() . "/plugins/! DeBePlugins/" . "Fly.yml", Config::YAML);
 		$fly->setAll($this->fly);
 		$fly->save();
-		$this->loadYml();
 	}
 
 	public function isKorean(){
-		return (new Config($this->getServer()->getDataPath() . "/plugins/! DeBePlugins/" . "! Korean.yml", Config::YAML, ["Korean" => false ]))->get("Korean");
+		@mkdir($this->getServer()->getDataPath() . "/plugins/! DeBePlugins/");
+		if(!isset($this->ik)) $this->ik = (new Config($this->getServer()->getDataPath() . "/plugins/! DeBePlugins/" . "! Korean.yml", Config::YAML, ["Korean" => false]))->get("Korean");
+		return $this->ik;
 	}
 }

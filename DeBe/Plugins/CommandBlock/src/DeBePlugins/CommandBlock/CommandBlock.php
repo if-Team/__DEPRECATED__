@@ -13,6 +13,7 @@ use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\server\ServerCommandEvent;
 use pocketmine\event\player\PlayerCommandPreprocessEvent;
+use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\command\ConsoleCommandSender;
 use pocketmine\scheduler\CallbackTask;
 
@@ -20,7 +21,8 @@ class CommandBlock extends PluginBase implements Listener{
 
 	public function onEnable(){
 		$this->touch = [];
-		$this->getServer()->getScheduler()->scheduleRepeatingTask(new CallbackTask([$this,"onTick" ]), 20);
+		$this->place = [];
+		$this->player = [];
 		$this->getServer()->getPluginManager()->registerEvents($this, $this);
 		$this->loadYml();
 	}
@@ -82,9 +84,11 @@ class CommandBlock extends PluginBase implements Listener{
 			break;
 		}
 		if(isset($r)) $sender->sendMessage($r);
-		$this->cb = $cb;
+		if($this->cb !== $cb){
+			$this->cb = $cb;
+			$this->saveYml();
+		}
 		$this->touch = $t;
-		$this->saveYml();
 		return true;
 	}
 
@@ -102,8 +106,8 @@ class CommandBlock extends PluginBase implements Listener{
 			switch($tc["Type"]){
 				case "Add":
 				 $m .= ($ik ?  "커맨드블럭이 생성되었습니다.": "CommandBlock Create") . " [$pos]";
-					if(!isset($this->cb[$pos])) $this->cb[$pos] = [];
-					$this->cb[$pos][] = $tc["Command"];
+					if(!isset($cb[$pos])) $cb[$pos] = [];
+					$cb[$pos][] = $tc["Command"];
  					unset($t[$n]);
 				break;
 				case "Del":
@@ -111,17 +115,23 @@ class CommandBlock extends PluginBase implements Listener{
 						$m .= $ik ?  "이곳에는 커맨드 블럭이 없습니다.": "CommandBlock is not exist here";
 					}else{
 						$m .= ($ik ?  "커맨드블럭이 제거되었습니다.": "CommandBlock is Delete ") . "[$pos]";
-						unset($this->cb[$pos]);
+						unset($cb[$pos]);
 						unset($t[$n]);
 					}
 				break;
 			}
-			$this->touch = $t;
 			if(isset($m)) $p->sendMessage($m);
-			$this->saveYml();
+			if($this->cb !== $cb){
+				$this->cb = $cb;
+				$this->saveYml();
+			}
+			$this->touch = $t;
 			$event->setCancelled();
+			if($event->getItem()->isPlaceable()){
+				$this->place[$p->getName()] = true;
+			}
 		}else{
-			$this->onBlockEvent($event);
+			$this->onBlockEvent($event,true);
  		}
 	}
 
@@ -133,56 +143,96 @@ class CommandBlock extends PluginBase implements Listener{
 		$this->onBlockEvent($event);
 	}
 
-	public function onBlockEvent($event){
+	public function onBlockEvent($event,$isTouch = false){
+		$p = $event->getPlayer();
+		if(isset($this->place[$p->getName()])){
+			$event->setCancelled();
+			unset($this->place[$p->getName()]);
+		}
 		$pos = $this->getPos($event->getBlock());
-		if(isset($this->cb[$pos])){
-			if(!$event->getPlayer()->hasPermission("debe.commandblock.block")) $event->setCancelled();
-			if($event->getPlayer()->hasPermission("debe.commandblock.touch")) $this->runCommand($event->getPlayer(),$pos);
+ 		if(isset($this->cb[$pos])){
+			if($isTouch && $event->getItem()->isPlaceable()){
+				$this->place[$p->getName()] = true;
+			}
+			if(!$p->hasPermission("debe.commandblock.block")) $event->setCancelled();
+			if($p->hasPermission("debe.commandblock.touch")) $this->runCommand($event->getPlayer(),$pos);
 		}
 	}
 
-	public function onTick(){
-		foreach($this->getServer()->getOnlinePlayers() as $p){
-			if(!$p->hasPermission("debe.commandblock.push")) continue;
-				$pos = $this->getPos($p->add(0,-1,0),$p->getLevel()->getName());
-	 			if(isset($this->cb[$pos])){
-				foreach($this->cb[$pos] as $cmd){
-					if(strpos($cmd, "%b") !== false){
-						$this->runCommand($p,$pos,true);
-						break;
-					}
+	public function onPlayerMove(PlayerMoveEvent $event){
+		$p = $event->getPlayer();
+		if(!$p->hasPermission("debe.commandblock.push")) return;
+		$pos = $this->getPos($p->add(0,-1,0),$p->getLevel()->getName());
+ 		if(isset($this->cb[$pos])){
+			foreach($this->cb[$pos] as $cmd){
+				if(strpos($cmd, "%b") !== false){
+					$this->runCommand($p,$pos,true);
+					break;
 				}
 			}
 		}
 	}
 
 	public function runCommand($p, $pos, $isBlock = false){
-		if(!isset($this->cb[$pos])) return false;
-		$cb = $this->cb[$pos];
-		foreach($cb as $str){
+		$cb = $this->cb;
+		if(!isset($cb[$pos])) return false;
+		$ps = $this->player;
+		$n = $p->getName();
+		if(!isset($ps[$n])) $ps[$n] = [];
+		if(!isset($ps[$n][$pos])) $ps[$n][$pos] = 0;
+		if(microtime(true) - $ps[$n][$pos] < 0) return;
+		$l = explode(":", $pos);
+		$cool = 1;
+		foreach($cb[$pos] as $str){
 			$arr = explode(" ", $str);
+			$time = 0;
 			$chat = false;
 			$console = false;
 			$op = false;
+			$deop = false;
+			$safe = false;
 			$block = false;
 			foreach($arr as $k => $v){
 				if(strpos($v, "%") === 0){
 					$kk = $k;
 					switch(strtolower(substr($v,1))){
-						case "username":
-						case "user":
-						case "u":
 						case "player":
 						case "p":
 							$arr[$k] = $p->getName();
+						break;
+						case "x":
+							$arr[$k] = $p->getX();
+						break;
+						case "y":
+							$arr[$k] = $p->getY();
+						break;
+						case "z":
+							$arr[$k] = $p->getZ();
+						break;
+						case "bx":
+							$arr[$k] = $l[0];				
+						break;
+						case "by":
+							$arr[$k] = $l[1];				
+						break;
+						case "bz":
+							$arr[$k] = $l[2];				
 						break;
 						case "world":
 						case "w":
 							$arr[$k] = $p->getLevel()->getFolderName();					
 						break;
+						case "worldname":
+						case "wn":
+							$arr[$k] = $p->getLevel()->getName();					
+						break;
 						case "mainworld":
 						case "mw":
 							$arr[$k] = $this->getDefaultLevel()->getFolderName();					
+						break;
+						case "mainworldname":
+						case "mwn":
+							$arr[$k] = $this->getDefaultLevel()->getName();					
 						break;
 						case "random":
 						case "r":
@@ -201,6 +251,15 @@ class CommandBlock extends PluginBase implements Listener{
 							unset($arr[$k]);					
 							$op = true;
 						break;
+						case "deop":
+							unset($arr[$k]);					
+							$deop = true;
+						break;
+						case "safe":
+						case "s":
+							unset($arr[$k]);					
+							$safe = true;
+						break;
 						case "chat":
 						case "c":
 							unset($arr[$k]);					
@@ -213,7 +272,7 @@ class CommandBlock extends PluginBase implements Listener{
 						break;
 						case "block":
 						case "b":
-							unset($arr[$k]);					
+							unset($arr[$k]);
 							$block = true;
 						break;
  					}
@@ -225,26 +284,45 @@ class CommandBlock extends PluginBase implements Listener{
 								$ee = explode(",", $e[1]);
 								if(isset($ee[1])) $arr[$k] = rand($ee[0], $ee[1]);
 							}
+						}elseif(strpos($ak, "%cool") === 0 || strpos($ak, "%c") === 0){
+							$e = explode(":", $ak);
+							if(isset($e[0]) && is_numeric($e[0])){
+								$cool = $e[0];
+								unset($arr[$k]);
+							}
+						}elseif(strpos($ak, "%time") === 0 || strpos($ak, "%t") === 0){
+							$e = explode(":", $ak);
+							if(isset($e[0]) && is_numeric($e[0])){
+								$time = $e[0];
+								unset($arr[$k]);
+							}
 						}
 					}
-				}
-			}
-			if($isBlock && !$block || !$isBlock && $block) continue;
-			$cmd = implode(" ", $arr);
-			if($chat){
-				$p->sendMessage($cmd);
-			}else{
-				$ev = $console ? new ServerCommandEvent($sender, $cmd) : new PlayerCommandPreprocessEvent($p, "/" . $cmd);
-				$this->getServer()->getPluginManager()->callEvent($ev);
-				if(!$ev->isCancelled()){
-					$op = $op && !$p->isOp() && !$console;
-					if($op) $p->setOp(true);
-					if($ev instanceof ServerCommandEvent) $this->getServer()->dispatchCommand(new ConsoleCommandSender(), substr($ev->getCommand(), 1));
-					else $this->getServer()->dispatchCommand($p, substr($ev->getMessage(), 1));
-					if($op) $p->setOp(false);
+					$this->getServer()->getScheduler()->scheduleDelayedTask(new CallbackTask([$this,"dispatchCommand"],[$p,$pos,$isBlock,$chat,$console,$op,$deop,$safe,$block,$arr]), $time*20);
 				}
 			}
 		}
+		$ps[$n][$pos] =  microtime(true) + $cool;
+		$this->player = $ps;
+	}
+
+	public function dispatchCommand($p,$pos,$isBlock,$chat,$console,$op,$deop,$safe,$block,$arr){
+		if(($isBlock && !$block) || (!$isBlock && $block) || ($safe && !$p->isOp()) || ($deop && $p->isOp())) return false;
+		$cmd = implode(" ", $arr);
+		if($chat){
+			$p->sendMessage($cmd);
+		}else{
+			$ev = $console ? new ServerCommandEvent(new ConsoleCommandSender(),$cmd) : new PlayerCommandPreprocessEvent($p, "/" . $cmd);
+			$this->getServer()->getPluginManager()->callEvent($ev);
+			if(!$ev->isCancelled()){
+				$op = $op && !$p->isOp() && !$console;
+				if($op) $p->setOp(true);
+				if($ev instanceof ServerCommandEvent) $this->getServer()->dispatchCommand(new ConsoleCommandSender(), $ev->getCommand());
+				else $this->getServer()->dispatchCommand($p, substr($ev->getMessage(), 1));
+				if($op) $p->setOp(false);
+			}
+		}
+		return true;
 	}
 
 	public function getPos($b, $level = false){
@@ -253,18 +331,19 @@ class CommandBlock extends PluginBase implements Listener{
 
 	public function loadYml(){
 		@mkdir($this->getServer()->getDataPath() . "/plugins/! DeBePlugins/");
-		$this->commandblock = new Config($this->getServer()->getDataPath() . "/plugins/! DeBePlugins/" . "CommandBlock.yml", Config::YAML);
-		$this->cb = $this->commandblock->getAll();
+		$this->cb = (new Config($this->getServer()->getDataPath() . "/plugins/! DeBePlugins/" . "CommandBlock.yml", Config::YAML))->getAll();
 	}
 
 	public function saveYml(){
 		ksort($this->cb);
-		$this->commandblock->setAll($this->cb);
-		$this->commandblock->save();
-		$this->loadYml();
+		$cb = new Config($this->getServer()->getDataPath() . "/plugins/! DeBePlugins/" . "CommandBlock.yml", Config::YAML);
+		$cb->setAll($this->cb);
+		$cb->save();
 	}
 
 	public function isKorean(){
-		return (new Config($this->getServer()->getDataPath() . "/plugins/! DeBePlugins/" . "! Korean.yml", Config::YAML, ["Korean" => false ]))->get("Korean");
+		@mkdir($this->getServer()->getDataPath() . "/plugins/! DeBePlugins/");
+		if(!isset($this->ik)) $this->ik = (new Config($this->getServer()->getDataPath() . "/plugins/! DeBePlugins/" . "! Korean.yml", Config::YAML, ["Korean" => false]))->get("Korean");
+		return $this->ik;
 	}
 }
