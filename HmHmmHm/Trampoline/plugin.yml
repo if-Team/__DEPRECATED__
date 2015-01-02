@@ -1,0 +1,5 @@
+name: Trampoline
+main: Trampoline\Trampoline
+version: 1.1
+author: hm
+api: [1.4.1]
