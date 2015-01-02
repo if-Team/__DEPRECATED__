@@ -1,0 +1,5 @@
+name: Farms
+main: hm\Farms\Farms
+version: 1.0-non-alpha
+author: hm
+api: [1.4.1]
