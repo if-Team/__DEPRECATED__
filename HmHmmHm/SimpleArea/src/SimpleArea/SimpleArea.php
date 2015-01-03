@@ -26,9 +26,10 @@ use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\block\Block;
+use pocketmine\event\level\LevelLoadEvent;
+use pocketmine\event\level\LevelUnloadEvent;
 
-
-//TODO 영역을 만들시 기본적으로 수정불가능처리 시킬 블럭리스트추가
+// TODO 영역을 만들시 기본적으로 수정불가능처리 시킬 블럭리스트추가
 class SimpleArea extends PluginBase implements Listener {
 	private static $instance = null;
 	public $config, $config_Data;
@@ -53,12 +54,13 @@ class SimpleArea extends PluginBase implements Listener {
 				"economy-home-price" => 5000,
 				"economy-home-reward-price" => 2500,
 				"default-prefix" => "[ 서버 ]",
-				"welcome-prefix" => "[ 환영메시지 ]" 
+				"welcome-prefix" => "[ 환영메시지 ]",
+				"default-wall-type" => 139 
 		] );
 		$this->config_Data = $this->config->getAll ();
 		
 		foreach ( $this->getServer ()->getLevels () as $level )
-			$this->db [$level->getFolderName ()] = new SimpleArea_Database ( $this->getServer ()->getDataPath () . "worlds\\" . $level->getFolderName () . "\\protects.yml", $level );
+			$this->db [$level->getFolderName ()] = new SimpleArea_Database ( $this->getServer ()->getDataPath () . "worlds\\" . $level->getFolderName () . "\\protects.yml", $level, $this->config_Data ["default-wall-type"] );
 		
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
 				$this,
@@ -84,6 +86,13 @@ class SimpleArea extends PluginBase implements Listener {
 	public function autoSave() {
 		foreach ( $this->getServer ()->getLevels () as $level )
 			$this->db [$level->getFolderName ()]->save ();
+	}
+	public function onLevelLoad(LevelLoadEvent $event) {
+		$level = $event->getLevel ();
+		$this->db [$level->getFolderName ()] = new SimpleArea_Database ( $this->getServer ()->getDataPath () . "worlds\\" . $level->getFolderName () . "\\protects.yml", $level, $this->config_Data ["default-wall-type"] );
+	}
+	public function onLevelUnload(LevelUnloadEvent $event) {
+		$this->db [$event->getLevel ()->getFolderName ()]->save ();
 	}
 	public function onPlace(BlockPlaceEvent $event) {
 		$player = $event->getPlayer ();
@@ -165,6 +174,41 @@ class SimpleArea extends PluginBase implements Listener {
 				$this->message ( $event->getPlayer (), "작업을 중지하려면 /sa cancel 을 써주세요." );
 				return;
 			}
+		}
+		
+		$player = $event->getPlayer ();
+		$block = $event->getBlock ();
+		
+		if ($block->getId () == Block::SIGN_POST or $block->getId () == Block::WALL_SIGN)
+			return;
+		
+		$area = $this->db [$block->getLevel ()->getFolderName ()]->getArea ( $block->x, $block->z );
+		
+		if ($area != false) {
+			if (isset ( $area ["resident"] [0] ))
+				if ($this->db [$block->getLevel ()->getFolderName ()]->checkResident ( $area ["ID"], $player->getName () ))
+					return;
+			if ($this->db [$block->getLevel ()->getFolderName ()]->isProtected ( $area ["ID"] ) == true) {
+				if ($this->db [$block->getLevel ()->getFolderName ()]->isOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () ))
+					return;
+				if ($this->checkShowPreventMessage ())
+					$this->alert ( $player, "이 구역은 지형수정이 금지되어있습니다." );
+				$event->setCancelled ();
+				return;
+			} else {
+				if ($this->db [$block->getLevel ()->getFolderName ()]->isOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) {
+					if ($this->checkShowPreventMessage ())
+						$this->alert ( $player, "이 블록은 사용이 금지되어 있습니다." );
+					$event->setCancelled ();
+				}
+			}
+			return;
+		}
+		if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
+			if ($this->checkShowPreventMessage ())
+				$this->alert ( $player, "이 구역은 지형수정이 금지되어있습니다. (*화이트월드)" );
+			$event->setCancelled ();
+			return;
 		}
 	}
 	public function onMove(PlayerMoveEvent $event) {
@@ -296,7 +340,7 @@ class SimpleArea extends PluginBase implements Listener {
 				if (isset ( $args [0] )) {
 					$this->welcome ( $player, $args [0] );
 				} else {
-					$this->message ( $player, "/welcome <메시지> - 환영메시지를 출력합니다." );
+					$this->message ( $player, "/welcome <메시지> - 환영메시지를 설정합니다." );
 				}
 				break;
 			case "sa" :
@@ -345,16 +389,21 @@ class SimpleArea extends PluginBase implements Listener {
 						}
 						break;
 					case "homelimit" :
-						// TODO 집 최대치 설정
-						$this->alert ( $player, "해당 기능은 아직 개발 중입니다." );
+						if (isset ( $args [1] )) {
+							$this->homelimit ( $player, $args [1] );
+						} else {
+							$this->homelimit ( $player );
+						}
 						break;
 					case "economy" :
-						// TODO 이코노미 기능 활성화/비활성화
-						$this->alert ( $player, "해당 기능은 아직 개발 중입니다." );
+						$this->enableEonomy ( $player );
 						break;
 					case "homeprice" :
-						// TODO 기본집가격 설정
-						$this->alert ( $player, "해당 기능은 아직 개발 중입니다." );
+						if (isset ( $args [1] )) {
+							$this->homeprice ( $player, $args [1] );
+						} else {
+							$this->homeprice ( $player );
+						}
 						break;
 					case "landtax" :
 						// TODO 토지세 기능 활성화
@@ -362,12 +411,14 @@ class SimpleArea extends PluginBase implements Listener {
 						$this->alert ( $player, "해당 기능은 아직 개발 중입니다." );
 						break;
 					case "fence" :
-						// TODO 울타리 종류설정
-						$this->alert ( $player, "해당 기능은 아직 개발 중입니다." );
+						if (isset ( $args [1] )) {
+							$this->setFenceType ( $player, $args [1] );
+						} else {
+							$this->setFenceType ( $player );
+						}
 						break;
 					case "message" :
-						// TODO 금지메시지 표시여부
-						$this->alert ( $player, "해당 기능은 아직 개발 중입니다." );
+						$this->IhatePreventMessage ( $player );
 						break;
 					case "help" :
 						if (isset ( $args [1] )) {
@@ -382,6 +433,64 @@ class SimpleArea extends PluginBase implements Listener {
 				}
 				break;
 		}
+		return true;
+	}
+	public function setFenceType(Player $player, $fenceType = null) {
+		if ($fenceType == null) {
+			$this->message ( $player, "/sa fence <종류> - 인생맵의 울타리의 종류를 설정합니다 !" );
+		}
+		if (! is_numeric ( $fenceType )) {
+			$this->alert ( $player, "울타리 종류는 반드시 숫자여야합니다 !" );
+			return false;
+		}
+		$this->config_Data ["default-wall-type"] = $fenceType;
+		foreach ( $this->getServer ()->getLevels () as $level )
+			$this->db [$level->getFolderName ()]->changeWall ( $fenceType );
+		$this->message ( $player, "울타리를 " . $fenceType . "종류로 설정했습니다 !" );
+	}
+	public function IhatePreventMessage(Player $player) {
+		if ($this->config_Data ["show-prevent-message"] == true) {
+			$this->config_Data ["show-prevent-message"] = false;
+			$this->message ( $player, "영역수정 금지메시지를 비활성화 했습니다 ( 다시 입력시 활성화 ! )" );
+		} else {
+			$this->config_Data ["show-prevent-message"] = true;
+			$this->message ( $player, "영역수정 금지메시지를 활성화 했습니다 ( 다시 입력시 비활성화 ! )" );
+		}
+	}
+	public function homeprice(Player $player, $price = null) {
+		if ($price == null) {
+			$this->alert ( $player, "/sa homeprice <가격> - 기본적으로 받을 집 가격을 설정 !" );
+			return false;
+		}
+		if (! is_numeric ( $price )) {
+			$this->alert ( $player, "/sa homeprice <가격> - 가격은 무조건 숫자여야합니다 !" );
+			return false;
+		}
+		$this->config_Data ["economy-home-price"] = $price;
+		$this->config_Data ["economy-home-reward-price"] = $price / 2;
+		$this->message ( $player, "기본적으로 받을 집 가격을 " . $count . "$ 로 설정했습니다 !" );
+		return true;
+	}
+	public function enableEonomy(Player $player) {
+		if ($this->config_Data ["economy-enable"] == true) {
+			$this->config_Data ["economy-enable"] = false;
+			$this->message ( $player, "이코노미를 비활성화 했습니다 ( 다시 입력시 활성화 ! )" );
+		} else {
+			$this->config_Data ["economy-enable"] = true;
+			$this->message ( $player, "이코노미를 활성화 했습니다 ( 다시 입력시 비활성화 ! )" );
+		}
+	}
+	public function homelimit(Player $player, $count = null) {
+		if ($count == null) {
+			$this->alert ( $player, "/sa homelimit <갯수> - 보유가능한 집 최대치 설정" );
+			return false;
+		}
+		if (! is_numeric ( $count )) {
+			$this->alert ( $player, "/sa homelimit <갯수> - 갯수는 무조건 숫자여야합니다 !" );
+			return false;
+		}
+		$this->config_Data ["maximum-home-limit"] = $count;
+		$this->message ( $player, "최대 보유가능 집 개수를 " . $count . "로 설정했습니다 !" );
 		return true;
 	}
 	public function giveHome(Player $player, $target = null) {
@@ -473,12 +582,12 @@ class SimpleArea extends PluginBase implements Listener {
 		}
 	}
 	public function homelist(Player $player) {
-		//TODO 출력방식
-		$this->message($player, "/home *집번호 로 해당 집으로 워프가능");
-		$this->message($player, "/buyhome 집번호 로 해당 집 구매가능");
-		//TODO /home *번호
-		//TODO /buyhome 번호
-		//TODO /home *번호 퍼미션
+		// TODO 출력방식
+		$this->message ( $player, "/home *집번호 로 해당 집으로 워프가능" );
+		$this->message ( $player, "/buyhome 집번호 로 해당 집 구매가능" );
+		// TODO /home *번호
+		// TODO /buyhome 번호
+		// TODO /home *번호 퍼미션
 	}
 	public function whiteWorld(Player $player) {
 		if (! $this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorld ()) {

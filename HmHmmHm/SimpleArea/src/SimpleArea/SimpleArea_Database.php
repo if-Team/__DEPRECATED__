@@ -14,11 +14,12 @@ use pocketmine\math\Vector3;
 use pocketmine\block\Block;
 
 class SimpleArea_Database {
-	private $path, $level;
+	private $path, $level, $fence_type;
 	private $yml, $index, $homelist = [ ];
-	public function __construct($path, Level $level) {
+	public function __construct($path, Level $level, $fence_type = 139) {
 		$this->path = &$path;
 		$this->level = &$level;
+		$this->fence_type = $fence_type;
 		$this->yml = (new Config ( $this->path, Config::YAML, [ 
 				"whiteworld" => false,
 				"user-property" => [ ] 
@@ -40,6 +41,9 @@ class SimpleArea_Database {
 				if ($area ["startX"] <= $x and $area ["endX"] >= $x and $area ["startZ"] <= $z and $area ["endZ"] >= $z)
 					return $area;
 		return false;
+	}
+	public function changeWall($wall) {
+		$this->fence_type = $wall;
 	}
 	public function getAreaById($id) {
 		return isset ( $this->yml [$id] ) ? $this->yml [$id] : false;
@@ -124,44 +128,44 @@ class SimpleArea_Database {
 		// TODO 3칸씩 울타리/2칸씩 공백식으로 만들기
 		
 		// 1
-		$this->setHighestBlockAt ( $startX, $startZ, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $startX + 1, $startZ, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $startX, $startZ + 1, Block::STONE_WALL );
+		$this->setHighestBlockAt ( $startX, $startZ, $this->fence_type );
+		$this->setHighestBlockAt ( $startX + 1, $startZ, $this->fence_type );
+		$this->setHighestBlockAt ( $startX, $startZ + 1, $this->fence_type );
 		
-		$this->setHighestBlockAt ( $startX + 2, $startZ, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $startX, $startZ + 2, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $startX + 3, $startZ, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $startX, $startZ + 3, Block::STONE_WALL );
+		$this->setHighestBlockAt ( $startX + 2, $startZ, $this->fence_type );
+		$this->setHighestBlockAt ( $startX, $startZ + 2, $this->fence_type );
+		$this->setHighestBlockAt ( $startX + 3, $startZ, $this->fence_type );
+		$this->setHighestBlockAt ( $startX, $startZ + 3, $this->fence_type );
 		
 		// 2
-		$this->setHighestBlockAt ( $startX, $endZ, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $startX + 1, $endZ, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $startX, $endZ - 1, Block::STONE_WALL );
+		$this->setHighestBlockAt ( $startX, $endZ, $this->fence_type );
+		$this->setHighestBlockAt ( $startX + 1, $endZ, $this->fence_type );
+		$this->setHighestBlockAt ( $startX, $endZ - 1, $this->fence_type );
 		
-		$this->setHighestBlockAt ( $startX + 2, $endZ, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $startX, $endZ - 2, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $startX + 3, $endZ, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $startX, $endZ - 3, Block::STONE_WALL );
+		$this->setHighestBlockAt ( $startX + 2, $endZ, $this->fence_type );
+		$this->setHighestBlockAt ( $startX, $endZ - 2, $this->fence_type );
+		$this->setHighestBlockAt ( $startX + 3, $endZ, $this->fence_type );
+		$this->setHighestBlockAt ( $startX, $endZ - 3, $this->fence_type );
 		
 		// 3
-		$this->setHighestBlockAt ( $endX, $startZ, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $endX - 1, $startZ, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $endX, $startZ + 1, Block::STONE_WALL );
+		$this->setHighestBlockAt ( $endX, $startZ, $this->fence_type );
+		$this->setHighestBlockAt ( $endX - 1, $startZ, $this->fence_type );
+		$this->setHighestBlockAt ( $endX, $startZ + 1, $this->fence_type );
 		
-		$this->setHighestBlockAt ( $endX - 2, $startZ, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $endX, $startZ + 2, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $endX - 3, $startZ, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $endX, $startZ + 3, Block::STONE_WALL );
+		$this->setHighestBlockAt ( $endX - 2, $startZ, $this->fence_type );
+		$this->setHighestBlockAt ( $endX, $startZ + 2, $this->fence_type );
+		$this->setHighestBlockAt ( $endX - 3, $startZ, $this->fence_type );
+		$this->setHighestBlockAt ( $endX, $startZ + 3, $this->fence_type );
 		
 		// 4
-		$this->setHighestBlockAt ( $endX, $endZ, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $endX - 1, $endZ, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $endX, $endZ - 1, Block::STONE_WALL );
+		$this->setHighestBlockAt ( $endX, $endZ, $this->fence_type );
+		$this->setHighestBlockAt ( $endX - 1, $endZ, $this->fence_type );
+		$this->setHighestBlockAt ( $endX, $endZ - 1, $this->fence_type );
 		
-		$this->setHighestBlockAt ( $endX - 2, $endZ, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $endX, $endZ - 2, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $endX - 3, $endZ, Block::STONE_WALL );
-		$this->setHighestBlockAt ( $endX, $endZ - 3, Block::STONE_WALL );
+		$this->setHighestBlockAt ( $endX - 2, $endZ, $this->fence_type );
+		$this->setHighestBlockAt ( $endX, $endZ - 2, $this->fence_type );
+		$this->setHighestBlockAt ( $endX - 3, $endZ, $this->fence_type );
+		$this->setHighestBlockAt ( $endX, $endZ - 3, $this->fence_type );
 	}
 	public function setHighestBlockAt($x, $z, $block) {
 		$y = $this->level->getHighestBlockAt ( $x, $z );
