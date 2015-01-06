@@ -1,6 +1,6 @@
 name: SimpleArea
 main: SimpleArea\SimpleArea
-version: 0.8-alpha
+version: 0.9-alpha
 author: hm
 api: [1.4.1]
 
@@ -11,6 +11,8 @@ commands:
    permission: simplearea.commands.sethome
  sellhome:
    permission: simplearea.commands.delhome
+ givehome:
+   permission: simplearea.commands.givehome
  buyhome:
    permission: simplearea.commands.buyhome
  homelist:
@@ -19,8 +21,12 @@ commands:
    permission: simplearea.commands.rent
  invite:
    permission: simplearea.commands.invite
+ inviteout:
+   permission: simplearea.commands.inviteout
  inviteclear:
    permission: simplearea.commands.inviteclear
+ invitelist:
+   permission: simplearea.commands.invitelist
  welcome:
    permission: simplearea.commands.welcome
  sa:
@@ -37,13 +43,19 @@ permissions:
   default: true
  simplearea.commands.buyhome:
   default: true
+ simplearea.commands.givehome:
+  default: true
  simplearea.commands.homelist:
   default: true
  simplearea.commands.rent:
   default: true
  simplearea.commands.invite:
   default: true
+ simplearea.commands.inviteout:
+  default: true
  simplearea.commands.inviteclear:
+  default: true
+ simplearea.commands.invitelist:
   default: true
  simplearea.commands.welcome:
   default: true

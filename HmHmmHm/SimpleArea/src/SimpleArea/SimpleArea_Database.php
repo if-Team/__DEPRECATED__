@@ -279,6 +279,11 @@ class SimpleArea_Database {
 			if ($target_id == $id)
 				unset ( $this->yml ["user-property"] [$username] [$index] );
 	}
+	public function removeResident($id, $resident) {
+		foreach ( $this->yml [$id] ["resident"] as $index => $target )
+			if ($target == $resident)
+				unset ( $this->yml [$id] ["resident"] [$index] );
+	}
 }
 
 ?>
