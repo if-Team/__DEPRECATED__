@@ -46,7 +46,6 @@ class SimpleArea extends PluginBase implements Listener {
 				"default-home-size" => 20,
 				"maximum-home-limit" => 1,
 				"show-prevent-message" => true,
-				"show-opland-message" => true,
 				"economy-enable" => true,
 				"economy-home-price" => 5000,
 				"economy-home-reward-price" => 2500,
@@ -205,8 +204,6 @@ class SimpleArea extends PluginBase implements Listener {
 						if ($area ["resident"] [0] == $player->getName ()) {
 							if ($this->db [$player->getLevel ()->getFolderName ()]->isHome ( $area ["ID"] )) {
 								$this->message ( $player, "집에 오신 것을 환영합니다 !" );
-							} else {
-								if ($this->config_Data ["show-opland-message"] == true) $this->message ( $player, "환영합니다, 관리자님 (해당 영역 수정가능)" );
 							}
 							$welcome = $this->db [$player->getLevel ()->getFolderName ()]->getWelcome ( $area ["ID"] );
 							if ($welcome != null) {
@@ -216,11 +213,7 @@ class SimpleArea extends PluginBase implements Listener {
 							}
 							return;
 						}
-						if ($this->getServer ()->getOfflinePlayer ( $area ["resident"] [0] )->isOp ()) {
-							if ($this->config_Data ["show-opland-message"] == true) $this->message ( $player, "운영진이 관리중인 영역입니다 : " . $area ["resident"] [0] );
-						} else {
-							$this->message ( $player, "이 영역은 " . $area ["resident"] [0] . "님의 영역입니다." );
-						}
+						if (! $this->getServer ()->getOfflinePlayer ( $area ["resident"] [0] )->isOp ()) $this->message ( $player, "이 영역은 " . $area ["resident"] [0] . "님의 영역입니다." );
 						$welcome = $this->db [$player->getLevel ()->getFolderName ()]->getWelcome ( $area ["ID"] );
 						if ($welcome != null) $this->message ( $player, $welcome, $this->config_Data ["welcome-prefix"] );
 					} else {
@@ -881,21 +874,6 @@ class SimpleArea extends PluginBase implements Listener {
 			$this->message ( $player, "이 집을 공유 받고 있는 유저를 출력합니다 !\n{$residents}" );
 			return true;
 		}
-	}
-	public function printInviteList(CommandSender $player) {
-		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
-		if ($area == null) {
-			$this->alert ( $player, "현재 위치에서 집을 찾을 수 없습니다." );
-			$this->alert ( $player, "집 안에서만 공유확인 명령어 사용이가능합니다." );
-			return false;
-		}
-		if ($area ["resident"] [0] != $player->getName ()) {
-			$this->alert ( $player, "본인의 땅이 아닙니다. 초대확인 불가능." );
-			return false;
-		} else {
-			$this->message ( $player, "이집을 공유 중인 유저를 출력합니다.(" . count () . ")" );
-		}
-		return true;
 	}
 	public function inviteclear(Player $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
