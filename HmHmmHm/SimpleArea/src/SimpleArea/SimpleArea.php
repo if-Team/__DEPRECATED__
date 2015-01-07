@@ -80,7 +80,7 @@ class SimpleArea extends PluginBase implements Listener {
 	}
 	public function onLevelLoad(LevelLoadEvent $event) {
 		$level = $event->getLevel ();
-		$this->db [$level->getFolderName ()] = new SimpleArea_Database ( $this->getServer ()->getDataPath () . "worlds\\" . $level->getFolderName () . "\\protects.yml", $level, $this->config_Data ["default-wall-type"] );
+		$this->db [$level->getFolderName ()] = new SimpleArea_Database ( $this->getServer ()->getDataPath () . "worlds\\" . $level->getFolderName () . "\\", $level, $this->config_Data ["default-wall-type"] );
 	}
 	public function onLevelUnload(LevelUnloadEvent $event) {
 		$this->db [$event->getLevel ()->getFolderName ()]->save ();
@@ -375,10 +375,12 @@ class SimpleArea extends PluginBase implements Listener {
 							$this->homeprice ( $player );
 						}
 						break;
-					case "landtax" :
-						// TODO 토지세 기능 활성화
-						// TODO 토지세 가격 설정
-						$this->alert ( $player, "해당 기능은 아직 개발 중입니다." );
+					case "hometax" :
+						if (isset ( $args [1] )) {
+							$this->hometax ( $player, $args [1] );
+						} else {
+							$this->hometax ( $player );
+						}
 						break;
 					case "fence" :
 						if (isset ( $args [1] )) {
@@ -403,6 +405,25 @@ class SimpleArea extends PluginBase implements Listener {
 				}
 				break;
 		}
+		return true;
+	}
+	public function hometax(Player $player, $price = null) {
+		if ($price == null) {
+			if ($this->db [$player->getLevel ()->getFolderName ()]->hometaxEnable ()) {
+				$this->message ( $player, "해당 맵에 토지세를 활성화 했습니다 !" );
+				$this->message ( $player, "( /sa hometax <비용> 으로 토지세를 설정가능 )" );
+			} else {
+				$this->message ( $player, "해당 맵에 토지세를 비활성화 했습니다 !" );
+				$this->message ( $player, "( /sa hometax <비용> 으로 토지세를 설정가능 )" );
+			}
+			return true;
+		}
+		if (! is_numeric ( $price )) {
+			$this->alert ( $player, "토지세 비용은 무조건 숫자여야 합니다." );
+			return false;
+		}
+		$this->db [$player->getLevel ()->getFolderName ()]->hometaxPrice ( $price );
+		$this->message ( $player, "해당 맵의 토지세를 " . $price . "$로 설정했습니다 !" );
 		return true;
 	}
 	public function setFenceType(Player $player, $fenceType = null) {
@@ -788,7 +809,7 @@ class SimpleArea extends PluginBase implements Listener {
 			$this->message ( $player, "/sa homelimit - 영역보유한계 설정", "" );
 			$this->message ( $player, "/sa economy - 이코노미 활성화 설정", "" );
 			$this->message ( $player, "/sa homeprice - 집가격 설정", "" );
-			$this->message ( $player, "/sa landtax - 토지세 설정", "" );
+			$this->message ( $player, "/sa hometax - 토지세 설정", "" );
 			$this->message ( $player, "/sa fence - 자동울타리관련 설정", "" );
 			$this->message ( $player, "/sa message - 금지메시지표시 설정", "" );
 			$this->message ( $player, "( /sa help 1|2 - 설명문을 출력합니다 ) " );

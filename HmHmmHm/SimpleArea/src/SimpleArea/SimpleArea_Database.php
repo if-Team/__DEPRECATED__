@@ -20,16 +20,25 @@ class SimpleArea_Database {
 		$this->path = &$path;
 		$this->level = &$level;
 		$this->fence_type = $fence_type;
-		$this->yml = (new Config ( $this->path, Config::YAML, [ 
+		$this->yml = (new Config ( $this->path . "protects.yml", Config::YAML, [ 
 				"whiteworld" => false,
-				"user-property" => [ ] 
-		] ))->getAll ();
+				"user-property" => [ ] ] ))->getAll ();
+		$this->option = (new Config ( $this->path . "options.yml", Config::YAML, [ 
+				"white-option" => [ ],
+				"white-pvp-allow" => true,
+				"white-welcome" => "",
+				"hometax-enable" => false,
+				"hometax-price" => "2500" ] ))->getAll ();
 		$this->makeHomeList ();
 		$this->index = count ( $this->yml ) - 1;
 	}
 	public function save() {
-		$config = new Config ( $this->path, Config::YAML );
+		$config = new Config ( $this->path . "protects.yml", Config::YAML );
 		$config->setAll ( $this->yml );
+		$config->save ();
+		
+		$config = new Config ( $this->path . "options.yml", Config::YAML );
+		$config->setAll ( $this->option );
 		$config->save ();
 	}
 	public function getAll() {
@@ -37,10 +46,39 @@ class SimpleArea_Database {
 	}
 	public function getArea($x, $z) {
 		foreach ( $this->yml as $area )
-			if (isset ( $area ["startX"] ))
-				if ($area ["startX"] <= $x and $area ["endX"] >= $x and $area ["startZ"] <= $z and $area ["endZ"] >= $z)
-					return $area;
+			if (isset ( $area ["startX"] )) if ($area ["startX"] <= $x and $area ["endX"] >= $x and $area ["startZ"] <= $z and $area ["endZ"] >= $z) return $area;
 		return false;
+	}
+	// TODO homeTax 매일마다 혹은 재부팅시마다 작동하게?..
+	public function homeTaxCheck() {
+		foreach ( $this->yml as $area )
+			if (isset ( $area ["startX"] )) if (! isset ( $area ["tax-time"] )) $area ["tax-time"] = date ( "Y-m-d H:i:s" );
+		// TODO 토지세 내게하기
+	}
+	public function homeTaxClear() {
+		foreach ( $this->yml as $area )
+			if (isset ( $area ["startX"] )) if (isset ( $area ["tax-time"] )) unset ( $this->yml [$area ["ID"] ["tax-time"]] );
+	}
+	public function makeTimestamp($date) {
+		$yy = substr ( $date, 0, 4 );
+		$mm = substr ( $date, 5, 2 );
+		$dd = substr ( $date, 8, 2 );
+		$hh = substr ( $date, 11, 2 );
+		$ii = substr ( $date, 14, 2 );
+		$ss = substr ( $date, 17, 2 );
+		return mktime ( $hh, $ii, $ss, $mm, $dd, $yy );
+	}
+	public function hometaxEnable() {
+		if ($this->option ["hometax-enable"]) {
+			$this->option ["hometax-enable"] = false;
+			return false;
+		} else {
+			$this->option ["hometax-enable"] = true;
+			return true;
+		}
+	}
+	public function hometaxPrice($price) {
+		$this->option ["hometax-price"] = $price;
 	}
 	public function changeWall($wall) {
 		$this->fence_type = $wall;
@@ -50,8 +88,7 @@ class SimpleArea_Database {
 	}
 	public function makeHomeList() {
 		foreach ( $this->yml as $area )
-			if (isset ( $area ["is-home"] ) and $area ["is-home"] == true and $area ["resident"] == null)
-				$this->homelist [$area ["ID"]] = null;
+			if (isset ( $area ["is-home"] ) and $area ["is-home"] == true and $area ["resident"] == null) $this->homelist [$area ["ID"]] = null;
 	}
 	public function getHomeList($id) {
 		return $this->homelist;
@@ -83,33 +120,27 @@ class SimpleArea_Database {
 	public function addUserProperty($username, $id) {
 		if (! isset ( $this->yml ["user-property"] [$username] )) {
 			$this->yml ["user-property"] [$username] = [ 
-					$id 
-			];
+					$id ];
 		} else {
-			if (! $this->checkUserProperty ( $username, $id ))
-				$this->yml ["user-property"] [$username] [] = $id;
+			if (! $this->checkUserProperty ( $username, $id )) $this->yml ["user-property"] [$username] [] = $id;
 		}
 	}
 	public function addArea($resident, $startX, $endX, $startZ, $endZ, $ishome = false, $protect = true, $option = [], $rent_allow = true) {
-		if ($this->checkOverlap ( $startX, $endX, $startZ, $endZ ) != false)
-			return false;
+		if ($this->checkOverlap ( $startX, $endX, $startZ, $endZ ) != false) return false;
 		
 		if ($ishome) {
 			if (! isset ( $this->yml ["user-property"] [$resident] )) {
 				$this->yml ["user-property"] [$resident] = [ 
-						$this->index 
-				];
+						$this->index ];
 			} else {
 				$this->yml ["user-property"] [$resident] [] = $this->index;
 			}
-			$this->setFence ( $startX, $endX, $startZ, $endZ );
+			$this->setFence ( $startX, $endX, $startZ, $endZ, 3 );
 		}
-		
 		$this->yml [$this->index] = [ 
 				"ID" => $this->index,
 				"resident" => [ 
-						$resident 
-				],
+						$resident ],
 				"is-home" => $ishome,
 				"startX" => $startX,
 				"endX" => $endX,
@@ -119,69 +150,46 @@ class SimpleArea_Database {
 				"option" => $option,
 				"rent-allow" => $rent_allow,
 				"welcome" => "",
-				"pvp-allow" => true 
-		];
+				"pvp-allow" => true ];
 		return $this->index ++;
 	}
-	public function setFence($startX, $endX, $startZ, $endZ) {
-		// TODO for문으로 교체
-		// TODO 3칸씩 울타리/2칸씩 공백식으로 만들기
-		
-		// 1
+	public function setFence($startX, $endX, $startZ, $endZ, $length = 3) {
 		$this->setHighestBlockAt ( $startX, $startZ, $this->fence_type );
-		$this->setHighestBlockAt ( $startX + 1, $startZ, $this->fence_type );
-		$this->setHighestBlockAt ( $startX, $startZ + 1, $this->fence_type );
+		for($i = 1; $i <= $length; $i ++) {
+			$this->setHighestBlockAt ( $startX + $i, $startZ, $this->fence_type );
+			$this->setHighestBlockAt ( $startX, $startZ + $i, $this->fence_type );
+		}
 		
-		$this->setHighestBlockAt ( $startX + 2, $startZ, $this->fence_type );
-		$this->setHighestBlockAt ( $startX, $startZ + 2, $this->fence_type );
-		$this->setHighestBlockAt ( $startX + 3, $startZ, $this->fence_type );
-		$this->setHighestBlockAt ( $startX, $startZ + 3, $this->fence_type );
-		
-		// 2
 		$this->setHighestBlockAt ( $startX, $endZ, $this->fence_type );
-		$this->setHighestBlockAt ( $startX + 1, $endZ, $this->fence_type );
-		$this->setHighestBlockAt ( $startX, $endZ - 1, $this->fence_type );
+		for($i = 1; $i <= $length; $i ++) {
+			$this->setHighestBlockAt ( $startX + $i, $endZ, $this->fence_type );
+			$this->setHighestBlockAt ( $startX, $endZ - $i, $this->fence_type );
+		}
 		
-		$this->setHighestBlockAt ( $startX + 2, $endZ, $this->fence_type );
-		$this->setHighestBlockAt ( $startX, $endZ - 2, $this->fence_type );
-		$this->setHighestBlockAt ( $startX + 3, $endZ, $this->fence_type );
-		$this->setHighestBlockAt ( $startX, $endZ - 3, $this->fence_type );
-		
-		// 3
 		$this->setHighestBlockAt ( $endX, $startZ, $this->fence_type );
-		$this->setHighestBlockAt ( $endX - 1, $startZ, $this->fence_type );
-		$this->setHighestBlockAt ( $endX, $startZ + 1, $this->fence_type );
+		for($i = 1; $i <= $length; $i ++) {
+			$this->setHighestBlockAt ( $endX - $i, $startZ, $this->fence_type );
+			$this->setHighestBlockAt ( $endX, $startZ + $i, $this->fence_type );
+		}
 		
-		$this->setHighestBlockAt ( $endX - 2, $startZ, $this->fence_type );
-		$this->setHighestBlockAt ( $endX, $startZ + 2, $this->fence_type );
-		$this->setHighestBlockAt ( $endX - 3, $startZ, $this->fence_type );
-		$this->setHighestBlockAt ( $endX, $startZ + 3, $this->fence_type );
-		
-		// 4
 		$this->setHighestBlockAt ( $endX, $endZ, $this->fence_type );
-		$this->setHighestBlockAt ( $endX - 1, $endZ, $this->fence_type );
-		$this->setHighestBlockAt ( $endX, $endZ - 1, $this->fence_type );
-		
-		$this->setHighestBlockAt ( $endX - 2, $endZ, $this->fence_type );
-		$this->setHighestBlockAt ( $endX, $endZ - 2, $this->fence_type );
-		$this->setHighestBlockAt ( $endX - 3, $endZ, $this->fence_type );
-		$this->setHighestBlockAt ( $endX, $endZ - 3, $this->fence_type );
+		for($i = 1; $i <= $length; $i ++) {
+			$this->setHighestBlockAt ( $endX - $i, $endZ, $this->fence_type );
+			$this->setHighestBlockAt ( $endX, $endZ - $i, $this->fence_type );
+		}
 	}
 	public function setHighestBlockAt($x, $z, $block) {
 		$y = $this->level->getHighestBlockAt ( $x, $z );
 		
-		if (! $this->isSolid ( $this->level->getBlockIdAt ( $x, $y, $z ) ))
-			$y --;
+		if (! $this->isSolid ( $this->level->getBlockIdAt ( $x, $y, $z ) )) $y --;
 		
 		$this->level->setBlock ( new Vector3 ( $x, ++ $y, $z ), Block::get ( $block ) );
 	}
 	public function removeAreaById($id) {
 		if (isset ( $this->yml [$id] )) {
 			$area = $this->getAreaById ( $id );
-			if ($area ["resident"] [0] != null and isset ( $this->yml ["user-property"] [$area ["resident"] [0]] ))
-				foreach ( $this->yml ["user-property"] [$area ["resident"] [0]] as $index => $user_area_id )
-					if ($user_area_id == $area [$id])
-						unset ( $this->yml ["user-property"] [$area ["resident"] [0]] [$index] );
+			if ($area ["resident"] [0] != null and isset ( $this->yml ["user-property"] [$area ["resident"] [0]] )) foreach ( $this->yml ["user-property"] [$area ["resident"] [0]] as $index => $user_area_id )
+				if ($user_area_id == $area [$id]) unset ( $this->yml ["user-property"] [$area ["resident"] [0]] [$index] );
 			unset ( $this->yml [$id] );
 			return true;
 		}
@@ -189,23 +197,18 @@ class SimpleArea_Database {
 	}
 	public function checkOverlap($startX, $endX, $startZ, $endZ) {
 		foreach ( $this->yml as $area ) {
-			if (isset ( $area ["startX"] ))
-				if ((($area ["startX"] < $startX and $area ["endX"] > $startX) or ($area ["startX"] < $endX and $area ["endX"] > $endX)) and (($area ["startZ"] < $startZ and $area ["endZ"] > $startZ) or ($area ["endZ"] < $endZ and $area ["endZ"] > $endZ)))
-					return $area;
+			if (isset ( $area ["startX"] )) if ((($area ["startX"] < $startX and $area ["endX"] > $startX) or ($area ["startX"] < $endX and $area ["endX"] > $endX)) and (($area ["startZ"] < $startZ and $area ["endZ"] > $startZ) or ($area ["endZ"] < $endZ and $area ["endZ"] > $endZ))) return $area;
 		}
 		return false;
 	}
 	public function checkUserProperty($username, $id = null) {
-		if ($id === null)
-			return isset ( $this->yml ["user-property"] [$username] );
+		if ($id === null) return isset ( $this->yml ["user-property"] [$username] );
 		foreach ( $this->yml ["user-property"] [$username] as $target_id )
-			if ($target_id == $id)
-				return true;
+			if ($target_id == $id) return true;
 		return false;
 	}
 	public function isSolid($id) {
-		if (isset ( Block::$solid [$id] ))
-			return Block::$solid [$id];
+		if (isset ( Block::$solid [$id] )) return Block::$solid [$id];
 		return true;
 	}
 	public function isHome($id) {
@@ -222,10 +225,8 @@ class SimpleArea_Database {
 		foreach ( $this->yml [$id] ["option"] as $getoption ) {
 			$go = explode ( ":", $getoption );
 			if ($io [0] == $go [0]) {
-				if (! isset ( $io [1] ))
-					return true;
-				if ($io [1] == $go [1])
-					return true;
+				if (! isset ( $io [1] )) return true;
+				if ($io [1] == $go [1]) return true;
 			}
 		}
 		return false;
@@ -238,8 +239,7 @@ class SimpleArea_Database {
 	}
 	public function checkResident($id, $resident) {
 		foreach ( $this->yml [$id] ["resident"] as $list )
-			if ($list == $resident)
-				return true;
+			if ($list == $resident) return true;
 		return false;
 	}
 	public function setProtected($id, $bool) {
@@ -262,10 +262,8 @@ class SimpleArea_Database {
 		foreach ( $this->yml [$id] ["option"] as $getoption ) {
 			$go = explode ( ":", $getoption );
 			if ($io [0] == $go [0]) {
-				if (! isset ( $io [1] ))
-					return false;
-				if ($io [1] == $go [1])
-					return false;
+				if (! isset ( $io [1] )) return false;
+				if ($io [1] == $go [1]) return false;
 			}
 		}
 		$this->yml [$id] ["option"] [] = $option;
@@ -276,13 +274,11 @@ class SimpleArea_Database {
 	}
 	public function removeUserProperty($username, $id) {
 		foreach ( $this->yml ["user-property"] [$username] as $index => $target_id )
-			if ($target_id == $id)
-				unset ( $this->yml ["user-property"] [$username] [$index] );
+			if ($target_id == $id) unset ( $this->yml ["user-property"] [$username] [$index] );
 	}
 	public function removeResident($id, $resident) {
 		foreach ( $this->yml [$id] ["resident"] as $index => $target )
-			if ($target == $resident)
-				unset ( $this->yml [$id] ["resident"] [$index] );
+			if ($target == $resident) unset ( $this->yml [$id] ["resident"] [$index] );
 	}
 }
 
