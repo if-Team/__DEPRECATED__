@@ -188,8 +188,10 @@ class SimpleArea_Database {
 	public function removeAreaById($id) {
 		if (isset ( $this->yml [$id] )) {
 			$area = $this->getAreaById ( $id );
-			if ($area ["resident"] [0] != null and isset ( $this->yml ["user-property"] [$area ["resident"] [0]] )) foreach ( $this->yml ["user-property"] [$area ["resident"] [0]] as $index => $user_area_id )
-				if ($user_area_id == $area [$id]) unset ( $this->yml ["user-property"] [$area ["resident"] [0]] [$index] );
+			foreach ( $area ["resident"] as $username )
+				foreach ( $this->yml ["user-property"] [$username] as $index => $user_area_id )
+					if ($user_area_id == $id) unset ( $this->yml ["user-property"] [$username] [$index] );
+			
 			unset ( $this->yml [$id] );
 			return true;
 		}
