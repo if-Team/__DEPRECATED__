@@ -126,7 +126,7 @@ class SimpleArea_Database {
 		}
 	}
 	public function addArea($resident, $startX, $endX, $startZ, $endZ, $ishome = false, $protect = true, $option = [], $rent_allow = true) {
-		if ($this->checkOverlap ( $startX, $endX, $startZ, $endZ ) != false) return false;
+		if ($this->checkAllSameOverlap ( $startX, $endX, $startZ, $endZ ) != false) return false;
 		
 		if ($ishome) {
 			if (! isset ( $this->yml ["user-property"] [$resident] )) {
@@ -198,9 +198,45 @@ class SimpleArea_Database {
 		return false;
 	}
 	public function checkOverlap($startX, $endX, $startZ, $endZ) {
-		foreach ( $this->yml as $area ) {
+		foreach ( $this->yml as $area )
 			if (isset ( $area ["startX"] )) if ((($area ["startX"] < $startX and $area ["endX"] > $startX) or ($area ["startX"] < $endX and $area ["endX"] > $endX)) and (($area ["startZ"] < $startZ and $area ["endZ"] > $startZ) or ($area ["endZ"] < $endZ and $area ["endZ"] > $endZ))) return $area;
+		return false;
+	}
+	public function checkAllSameOverlap($startX, $endX, $startZ, $endZ) {
+		foreach ( $this->yml as $area )
+			if (isset ( $area ["startX"] )) if ($area ["startX"] == $startX and $area ["endX"] == $endX and $area ["startZ"] == $startZ and $area ["endZ"] == $endZ) return $area;
+		return false;
+	}
+	public function getLowRangeOverlap($startX, $endX, $startZ, $endZ) {
+		$min = null;
+		foreach ( $this->yml as $area ) {
+			if (isset ( $area ["startX"] )) if ((($area ["startX"] < $startX and $area ["endX"] > $startX) or ($area ["startX"] < $endX and $area ["endX"] > $endX)) and (($area ["startZ"] < $startZ and $area ["endZ"] > $startZ) or ($area ["endZ"] < $endZ and $area ["endZ"] > $endZ))) {
+				if ($min == null) {
+					$min = $area;
+					continue;
+				}
+				$a = abs ( $area ["startX"] - $area ["endX"] ) * abs ( $area ["startZ"] - $area ["endZ"] );
+				$b = abs ( $min ["startX"] - $min ["endX"] ) * abs ( $min ["startZ"] - $min ["endZ"] );
+				if ($a < $b) $min = $area;
+			}
 		}
+		if ($min != null) return $min;
+		return false;
+	}
+	public function getLargeRangeOverlap($startX, $endX, $startZ, $endZ) {
+		$max = null;
+		foreach ( $this->yml as $area ) {
+			if (isset ( $area ["startX"] )) if ((($area ["startX"] < $startX and $area ["endX"] > $startX) or ($area ["startX"] < $endX and $area ["endX"] > $endX)) and (($area ["startZ"] < $startZ and $area ["endZ"] > $startZ) or ($area ["endZ"] < $endZ and $area ["endZ"] > $endZ))) {
+				if ($max == null) {
+					$max = $area;
+					continue;
+				}
+				$a = abs ( $area ["startX"] - $area ["endX"] ) * abs ( $area ["startZ"] - $area ["endZ"] );
+				$b = abs ( $max ["startX"] - $max ["endX"] ) * abs ( $max ["startZ"] - $max ["endZ"] );
+				if ($a > $b) $minimum = $area;
+			}
+		}
+		if ($max != null) return $max;
 		return false;
 	}
 	public function checkUserProperty($username, $id = null) {
