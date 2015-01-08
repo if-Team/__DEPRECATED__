@@ -1,10 +1,10 @@
 <?php
 
 /**  __    __       __    __
- * /¡¬ ¡¬_¡¬ ¡¬   /¡¬  "-./ ¡¬
- * ¡¬ ¡¬  __   ¡¬ ¡¬ ¡¬ ¡¬/¡¬¡¬
- *  ¡¬ ¡¬_¡¬ ¡¬ _¡¬¡¬ ¡¬_¡¬ ¡¬_¡¬
- *   ¡¬/_/  ¡¬/__/   ¡¬/_/ ¡¬/__/
+ * /ï¼¼ ï¼¼_ï¼¼ ï¼¼   /ï¼¼  "-./ ï¼¼
+ * ï¼¼ ï¼¼  __   ï¼¼ ï¼¼ ï¼¼ ï¼¼/ï¼¼ï¼¼
+ *  ï¼¼ ï¼¼_ï¼¼ ï¼¼ _ï¼¼ï¼¼ ï¼¼_ï¼¼ ï¼¼_ï¼¼
+ *   ï¼¼/_/  ï¼¼/__/   ï¼¼/_/ ï¼¼/__/
  * ( *you can redistribute it and/or modify *) */
 namespace SimpleArea;
 
@@ -46,11 +46,12 @@ class SimpleArea extends PluginBase implements Listener {
 				"default-home-size" => 20,
 				"maximum-home-limit" => 1,
 				"show-prevent-message" => true,
+				"show-opland-message" => true,
 				"economy-enable" => true,
 				"economy-home-price" => 5000,
 				"economy-home-reward-price" => 2500,
-				"default-prefix" => "[ ¼­¹ö ]",
-				"welcome-prefix" => "[ È¯¿µ¸Ş½ÃÁö ]",
+				"default-prefix" => "[ ì„œë²„ ]",
+				"welcome-prefix" => "[ í™˜ì˜ë©”ì‹œì§€ ]",
 				"default-wall-type" => 139,
 				"default-protect-blocks" => [ 
 						139 ] ] );
@@ -80,7 +81,7 @@ class SimpleArea extends PluginBase implements Listener {
 	}
 	public function onLevelLoad(LevelLoadEvent $event) {
 		$level = $event->getLevel ();
-		$this->db [$level->getFolderName ()] = new SimpleArea_Database ( $this->getServer ()->getDataPath () . "worlds\\" . $level->getFolderName () . "\\", $level, $this->config_Data ["default-wall-type"] );
+		$this->db [$level->getFolderName ()] = new SimpleArea_Database ( $this->getServer ()->getDataPath () . "worlds\\" . $level->getFolderName () . "\\protects.yml", $level, $this->config_Data ["default-wall-type"] );
 	}
 	public function onLevelUnload(LevelUnloadEvent $event) {
 		$this->db [$event->getLevel ()->getFolderName ()]->save ();
@@ -95,18 +96,18 @@ class SimpleArea extends PluginBase implements Listener {
 			if ($this->db [$block->getLevel ()->getFolderName ()]->checkResident ( $area ["ID"], $player->getName () )) return;
 			if ($this->db [$block->getLevel ()->getFolderName ()]->isProtected ( $area ["ID"] )) {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) return;
-				if ($this->checkShowPreventMessage ()) $this->alert ( $player, "ÀÌ ±¸¿ªÀº ÁöÇü¼öÁ¤ÀÌ ±İÁöµÇ¾îÀÖ½À´Ï´Ù." );
+				if ($this->checkShowPreventMessage ()) $this->alert ( $player, "ì´ êµ¬ì—­ì€ ì§€í˜•ìˆ˜ì •ì´ ê¸ˆì§€ë˜ì–´ìˆìŠµë‹ˆë‹¤." );
 				$event->setCancelled ();
 				return;
 			} else {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) {
-					if ($this->checkShowPreventMessage ()) $this->alert ( $player, "ÀÌ ºí·ÏÀº »ç¿ëÀÌ ±İÁöµÇ¾î ÀÖ½À´Ï´Ù." );
+					if ($this->checkShowPreventMessage ()) $this->alert ( $player, "ì´ ë¸”ë¡ì€ ì‚¬ìš©ì´ ê¸ˆì§€ë˜ì–´ ìˆìŠµë‹ˆë‹¤." );
 					$event->setCancelled ();
 				}
 			}
 		} else {
 			if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
-				if ($this->checkShowPreventMessage ()) $this->alert ( $player, "ÀÌ ±¸¿ªÀº ÁöÇü¼öÁ¤ÀÌ ±İÁöµÇ¾îÀÖ½À´Ï´Ù. (*È­ÀÌÆ®¿ùµå)" );
+				if ($this->checkShowPreventMessage ()) $this->alert ( $player, "ì´ êµ¬ì—­ì€ ì§€í˜•ìˆ˜ì •ì´ ê¸ˆì§€ë˜ì–´ìˆìŠµë‹ˆë‹¤. (*í™”ì´íŠ¸ì›”ë“œ)" );
 				$event->setCancelled ();
 				return;
 			}
@@ -122,19 +123,19 @@ class SimpleArea extends PluginBase implements Listener {
 			if (isset ( $area ["resident"] [0] )) if ($this->db [$block->getLevel ()->getFolderName ()]->checkResident ( $area ["ID"], $player->getName () )) return;
 			if ($this->db [$block->getLevel ()->getFolderName ()]->isProtected ( $area ["ID"] ) == true) {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) return;
-				if ($this->checkShowPreventMessage ()) $this->alert ( $player, "ÀÌ ±¸¿ªÀº ÁöÇü¼öÁ¤ÀÌ ±İÁöµÇ¾îÀÖ½À´Ï´Ù." );
+				if ($this->checkShowPreventMessage ()) $this->alert ( $player, "ì´ êµ¬ì—­ì€ ì§€í˜•ìˆ˜ì •ì´ ê¸ˆì§€ë˜ì–´ìˆìŠµë‹ˆë‹¤." );
 				$event->setCancelled ();
 				return;
 			} else {
 				if ($this->db [$block->getLevel ()->getFolderName ()]->isOption ( $area ["ID"], $block->getID () . ":" . $block->getDamage () )) {
-					if ($this->checkShowPreventMessage ()) $this->alert ( $player, "ÀÌ ºí·ÏÀº »ç¿ëÀÌ ±İÁöµÇ¾î ÀÖ½À´Ï´Ù." );
+					if ($this->checkShowPreventMessage ()) $this->alert ( $player, "ì´ ë¸”ë¡ì€ ì‚¬ìš©ì´ ê¸ˆì§€ë˜ì–´ ìˆìŠµë‹ˆë‹¤." );
 					$event->setCancelled ();
 				}
 			}
 			return;
 		}
 		if ($this->db [$block->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
-			if ($this->checkShowPreventMessage ()) $this->alert ( $player, "ÀÌ ±¸¿ªÀº ÁöÇü¼öÁ¤ÀÌ ±İÁöµÇ¾îÀÖ½À´Ï´Ù. (*È­ÀÌÆ®¿ùµå)" );
+			if ($this->checkShowPreventMessage ()) $this->alert ( $player, "ì´ êµ¬ì—­ì€ ì§€í˜•ìˆ˜ì •ì´ ê¸ˆì§€ë˜ì–´ìˆìŠµë‹ˆë‹¤. (*í™”ì´íŠ¸ì›”ë“œ)" );
 			$event->setCancelled ();
 			return;
 		}
@@ -144,14 +145,14 @@ class SimpleArea extends PluginBase implements Listener {
 			if ($this->make_Queue [$event->getPlayer ()->getName ()] ["pos1"] == false) {
 				$event->setCancelled ();
 				$this->make_Queue [$event->getPlayer ()->getName ()] ["pos1"] = $event->getBlock ()->getSide ( 0 );
-				$this->message ( $event->getPlayer (), "pos1ÀÌ ¼±ÅÃµÇ¾ú½À´Ï´Ù." );
+				$this->message ( $event->getPlayer (), "pos1ì´ ì„ íƒë˜ì—ˆìŠµë‹ˆë‹¤." );
 				return;
 			} else if ($this->make_Queue [$event->getPlayer ()->getName ()] ["pos2"] == false) {
 				$event->setCancelled ();
 				$this->make_Queue [$event->getPlayer ()->getName ()] ["pos2"] = $event->getBlock ()->getSide ( 0 );
-				$this->message ( $event->getPlayer (), "pos2°¡ ¼±ÅÃµÇ¾ú½À´Ï´Ù." );
-				$this->message ( $event->getPlayer (), "¿µ¿ªÀ» ¸¸µå½Ã·Á¸é /sa make ¸¦" );
-				$this->message ( $event->getPlayer (), "ÀÛ¾÷À» ÁßÁöÇÏ·Á¸é /sa cancel À» ½áÁÖ¼¼¿ä." );
+				$this->message ( $event->getPlayer (), "pos2ê°€ ì„ íƒë˜ì—ˆìŠµë‹ˆë‹¤." );
+				$this->message ( $event->getPlayer (), "ì˜ì—­ì„ ë§Œë“œì‹œë ¤ë©´ /sa make ë¥¼" );
+				$this->message ( $event->getPlayer (), "ì‘ì—…ì„ ì¤‘ì§€í•˜ë ¤ë©´ /sa cancel ì„ ì¨ì£¼ì„¸ìš”." );
 				return;
 			}
 		}
@@ -203,21 +204,27 @@ class SimpleArea extends PluginBase implements Listener {
 						if ($this->getServer ()->getOfflinePlayer ( $area ["resident"] [0] ) == null) return;
 						if ($area ["resident"] [0] == $player->getName ()) {
 							if ($this->db [$player->getLevel ()->getFolderName ()]->isHome ( $area ["ID"] )) {
-								$this->message ( $player, "Áı¿¡ ¿À½Å °ÍÀ» È¯¿µÇÕ´Ï´Ù !" );
+								$this->message ( $player, "ì§‘ì— ì˜¤ì‹  ê²ƒì„ í™˜ì˜í•©ë‹ˆë‹¤ !" );
+							} else {
+								if ($this->config_Data ["show-opland-message"] == true) $this->message ( $player, "í™˜ì˜í•©ë‹ˆë‹¤, ê´€ë¦¬ìë‹˜ (í•´ë‹¹ ì˜ì—­ ìˆ˜ì •ê°€ëŠ¥)" );
 							}
 							$welcome = $this->db [$player->getLevel ()->getFolderName ()]->getWelcome ( $area ["ID"] );
 							if ($welcome != null) {
 								$this->message ( $player, $welcome, $this->config_Data ["welcome-prefix"] );
 							} else {
-								$this->message ( $player, "( /welcome À¸·Î È¯¿µ¸Ş½ÃÁö ¼³Á¤°¡´É ! )" );
+								$this->message ( $player, "( /welcome ìœ¼ë¡œ í™˜ì˜ë©”ì‹œì§€ ì„¤ì •ê°€ëŠ¥ ! )" );
 							}
 							return;
 						}
-						if (! $this->getServer ()->getOfflinePlayer ( $area ["resident"] [0] )->isOp ()) $this->message ( $player, "ÀÌ ¿µ¿ªÀº " . $area ["resident"] [0] . "´ÔÀÇ ¿µ¿ªÀÔ´Ï´Ù." );
+						if ($this->getServer ()->getOfflinePlayer ( $area ["resident"] [0] )->isOp ()) {
+							if ($this->config_Data ["show-opland-message"] == true) $this->message ( $player, "ìš´ì˜ì§„ì´ ê´€ë¦¬ì¤‘ì¸ ì˜ì—­ì…ë‹ˆë‹¤ : " . $area ["resident"] [0] );
+						} else {
+							$this->message ( $player, "ì´ ì˜ì—­ì€ " . $area ["resident"] [0] . "ë‹˜ì˜ ì˜ì—­ì…ë‹ˆë‹¤." );
+						}
 						$welcome = $this->db [$player->getLevel ()->getFolderName ()]->getWelcome ( $area ["ID"] );
 						if ($welcome != null) $this->message ( $player, $welcome, $this->config_Data ["welcome-prefix"] );
 					} else {
-						$this->message ( $player, "ÀÌ ¿µ¿ªÀº ±¸¸Å °¡´ÉÇÕ´Ï´Ù, °¡°İ : " . $this->config_Data ["economy-home-price"] . " (/buyhome)" );
+						$this->message ( $player, "ì´ ì˜ì—­ì€ êµ¬ë§¤ ê°€ëŠ¥í•©ë‹ˆë‹¤, ê°€ê²© : " . $this->config_Data ["economy-home-price"] . " (/buyhome)" );
 					}
 					return;
 				} else {
@@ -238,7 +245,7 @@ class SimpleArea extends PluginBase implements Listener {
 				$player = $event->getDamager ();
 				$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 				if ($area != null) if (! $this->db [$player->getLevel ()->getFolderName ()]->isPvpAllow ( $area ["ID"] )) {
-					$this->message ( $player, "ÀÌ ¿µ¿ª¿¡¼± PVP°¡ Çã¿ëµÇÁö ¾Ê½À´Ï´Ù !" );
+					$this->message ( $player, "ì´ ì˜ì—­ì—ì„  PVPê°€ í—ˆìš©ë˜ì§€ ì•ŠìŠµë‹ˆë‹¤ !" );
 					$event->setCancelled ();
 				}
 			}
@@ -246,7 +253,7 @@ class SimpleArea extends PluginBase implements Listener {
 	}
 	public function onCommand(CommandSender $player, Command $command, $label, Array $args) {
 		if (! $player instanceof Player) {
-			$this->alert ( $player, "ÀÎ°ÔÀÓ ³»¿¡¼­¸¸ »ç¿ë°¡´É ÇÕ´Ï´Ù" );
+			$this->alert ( $player, "ì¸ê²Œì„ ë‚´ì—ì„œë§Œ ì‚¬ìš©ê°€ëŠ¥ í•©ë‹ˆë‹¤" );
 			return true;
 		}
 		switch (strtolower ( $command->getName () )) {
@@ -261,7 +268,7 @@ class SimpleArea extends PluginBase implements Listener {
 				if ($this->checkHomeLimit ( $player )) {
 					$this->SimpleArea ( $player );
 				} else {
-					$this->message ( $player, "ÁıÀ» ÃÖ´ëÄ¡ ¸¸Å­ º¸À¯ÇÏ°íÀÖ½À´Ï´Ù - Áı¼³Á¤ºÒ°¡ !" );
+					$this->message ( $player, "ì§‘ì„ ìµœëŒ€ì¹˜ ë§Œí¼ ë³´ìœ í•˜ê³ ìˆìŠµë‹ˆë‹¤ - ì§‘ì„¤ì •ë¶ˆê°€ !" );
 				}
 				break;
 			case "sellhome" :
@@ -291,7 +298,7 @@ class SimpleArea extends PluginBase implements Listener {
 				if (isset ( $args [0] )) {
 					$this->invite ( $player, $args [0] );
 				} else {
-					$this->message ( $player, "/invite <À¯Àú¸í> - ÁıÀ» °øÀ¯ÇÕ´Ï´Ù." );
+					$this->message ( $player, "/invite <ìœ ì €ëª…> - ì§‘ì„ ê³µìœ í•©ë‹ˆë‹¤." );
 				}
 				break;
 			case "inviteout" :
@@ -307,7 +314,7 @@ class SimpleArea extends PluginBase implements Listener {
 				if (isset ( $args [0] )) {
 					$this->welcome ( $player, implode ( " ", $args ) );
 				} else {
-					$this->message ( $player, "/welcome <¸Ş½ÃÁö> - È¯¿µ¸Ş½ÃÁö¸¦ ¼³Á¤ÇÕ´Ï´Ù." );
+					$this->message ( $player, "/welcome <ë©”ì‹œì§€> - í™˜ì˜ë©”ì‹œì§€ë¥¼ ì„¤ì •í•©ë‹ˆë‹¤." );
 				}
 				break;
 			case "yap" :
@@ -328,10 +335,10 @@ class SimpleArea extends PluginBase implements Listener {
 					case "cancel" :
 						if (isset ( $this->make_Queue [$player->getName ()] )) {
 							unset ( $this->make_Queue [$player->getName ()] );
-							$this->message ( $player, "¼³Á¤À» Ãë¼ÒÇß½À´Ï´Ù." );
+							$this->message ( $player, "ì„¤ì •ì„ ì·¨ì†Œí–ˆìŠµë‹ˆë‹¤." );
 							return true;
 						} else {
-							$this->alert ( $player, "ÁøÇàÁßÀÎ ¼³Á¤ÀÌ ¾ø½À´Ï´Ù." );
+							$this->alert ( $player, "ì§„í–‰ì¤‘ì¸ ì„¤ì •ì´ ì—†ìŠµë‹ˆë‹¤." );
 							return true;
 						}
 						break;
@@ -348,14 +355,14 @@ class SimpleArea extends PluginBase implements Listener {
 						if (isset ( $args [1] )) {
 							$this->allowBlock ( $player, $args [1] );
 						} else {
-							$this->alert ( $player, "/sa allow - Æ¯º°È÷ Çã¿ëÇÒ ºí·° ¼³Á¤" );
+							$this->alert ( $player, "/sa allow - íŠ¹ë³„íˆ í—ˆìš©í•  ë¸”ëŸ­ ì„¤ì •" );
 						}
 						break;
 					case "forbid" :
 						if (isset ( $args [1] )) {
 							$this->forbidBlock ( $player, $args [1] );
 						} else {
-							$this->alert ( $player, "/sa allow - Æ¯º°È÷ ±İÁöÇÒ ºí·° ¼³Á¤" );
+							$this->alert ( $player, "/sa allow - íŠ¹ë³„íˆ ê¸ˆì§€í•  ë¸”ëŸ­ ì„¤ì •" );
 						}
 						break;
 					case "homelimit" :
@@ -375,12 +382,10 @@ class SimpleArea extends PluginBase implements Listener {
 							$this->homeprice ( $player );
 						}
 						break;
-					case "hometax" :
-						if (isset ( $args [1] )) {
-							$this->hometax ( $player, $args [1] );
-						} else {
-							$this->hometax ( $player );
-						}
+					case "landtax" :
+						// TODO í† ì§€ì„¸ ê¸°ëŠ¥ í™œì„±í™”
+						// TODO í† ì§€ì„¸ ê°€ê²© ì„¤ì •
+						$this->alert ( $player, "í•´ë‹¹ ê¸°ëŠ¥ì€ ì•„ì§ ê°œë°œ ì¤‘ì…ë‹ˆë‹¤." );
 						break;
 					case "fence" :
 						if (isset ( $args [1] )) {
@@ -407,110 +412,91 @@ class SimpleArea extends PluginBase implements Listener {
 		}
 		return true;
 	}
-	public function hometax(Player $player, $price = null) {
-		if ($price == null) {
-			if ($this->db [$player->getLevel ()->getFolderName ()]->hometaxEnable ()) {
-				$this->message ( $player, "ÇØ´ç ¸Ê¿¡ ÅäÁö¼¼¸¦ È°¼ºÈ­ Çß½À´Ï´Ù !" );
-				$this->message ( $player, "( /sa hometax <ºñ¿ë> À¸·Î ÅäÁö¼¼¸¦ ¼³Á¤°¡´É )" );
-			} else {
-				$this->message ( $player, "ÇØ´ç ¸Ê¿¡ ÅäÁö¼¼¸¦ ºñÈ°¼ºÈ­ Çß½À´Ï´Ù !" );
-				$this->message ( $player, "( /sa hometax <ºñ¿ë> À¸·Î ÅäÁö¼¼¸¦ ¼³Á¤°¡´É )" );
-			}
-			return true;
-		}
-		if (! is_numeric ( $price )) {
-			$this->alert ( $player, "ÅäÁö¼¼ ºñ¿ëÀº ¹«Á¶°Ç ¼ıÀÚ¿©¾ß ÇÕ´Ï´Ù." );
-			return false;
-		}
-		$this->db [$player->getLevel ()->getFolderName ()]->hometaxPrice ( $price );
-		$this->message ( $player, "ÇØ´ç ¸ÊÀÇ ÅäÁö¼¼¸¦ " . $price . "$·Î ¼³Á¤Çß½À´Ï´Ù !" );
-		return true;
-	}
 	public function setFenceType(Player $player, $fenceType = null) {
 		if ($fenceType == null) {
-			$this->message ( $player, "/sa fence <Á¾·ù> - ÀÎ»ı¸ÊÀÇ ¿ïÅ¸¸®ÀÇ Á¾·ù¸¦ ¼³Á¤ÇÕ´Ï´Ù !" );
+			$this->message ( $player, "/sa fence <ì¢…ë¥˜> - ì¸ìƒë§µì˜ ìš¸íƒ€ë¦¬ì˜ ì¢…ë¥˜ë¥¼ ì„¤ì •í•©ë‹ˆë‹¤ !" );
 		}
 		if (! is_numeric ( $fenceType )) {
-			$this->alert ( $player, "¿ïÅ¸¸® Á¾·ù´Â ¹İµå½Ã ¼ıÀÚ¿©¾ßÇÕ´Ï´Ù !" );
+			$this->alert ( $player, "ìš¸íƒ€ë¦¬ ì¢…ë¥˜ëŠ” ë°˜ë“œì‹œ ìˆ«ìì—¬ì•¼í•©ë‹ˆë‹¤ !" );
 			return false;
 		}
 		$this->config_Data ["default-wall-type"] = $fenceType;
 		foreach ( $this->getServer ()->getLevels () as $level )
 			$this->db [$level->getFolderName ()]->changeWall ( $fenceType );
-		$this->message ( $player, "¿ïÅ¸¸®¸¦ " . $fenceType . "Á¾·ù·Î ¼³Á¤Çß½À´Ï´Ù !" );
+		$this->message ( $player, "ìš¸íƒ€ë¦¬ë¥¼ " . $fenceType . "ì¢…ë¥˜ë¡œ ì„¤ì •í–ˆìŠµë‹ˆë‹¤ !" );
 	}
 	public function IhatePreventMessage(Player $player) {
 		if ($this->config_Data ["show-prevent-message"] == true) {
 			$this->config_Data ["show-prevent-message"] = false;
-			$this->message ( $player, "¿µ¿ª¼öÁ¤ ±İÁö¸Ş½ÃÁö¸¦ ºñÈ°¼ºÈ­ Çß½À´Ï´Ù ( ´Ù½Ã ÀÔ·Â½Ã È°¼ºÈ­ ! )" );
+			$this->message ( $player, "ì˜ì—­ìˆ˜ì • ê¸ˆì§€ë©”ì‹œì§€ë¥¼ ë¹„í™œì„±í™” í–ˆìŠµë‹ˆë‹¤ ( ë‹¤ì‹œ ì…ë ¥ì‹œ í™œì„±í™” ! )" );
 		} else {
 			$this->config_Data ["show-prevent-message"] = true;
-			$this->message ( $player, "¿µ¿ª¼öÁ¤ ±İÁö¸Ş½ÃÁö¸¦ È°¼ºÈ­ Çß½À´Ï´Ù ( ´Ù½Ã ÀÔ·Â½Ã ºñÈ°¼ºÈ­ ! )" );
+			$this->message ( $player, "ì˜ì—­ìˆ˜ì • ê¸ˆì§€ë©”ì‹œì§€ë¥¼ í™œì„±í™” í–ˆìŠµë‹ˆë‹¤ ( ë‹¤ì‹œ ì…ë ¥ì‹œ ë¹„í™œì„±í™” ! )" );
 		}
 	}
 	public function homeprice(Player $player, $price = null) {
 		if ($price == null) {
-			$this->alert ( $player, "/sa homeprice <°¡°İ> - ±âº»ÀûÀ¸·Î ¹ŞÀ» Áı °¡°İÀ» ¼³Á¤ !" );
+			$this->alert ( $player, "/sa homeprice <ê°€ê²©> - ê¸°ë³¸ì ìœ¼ë¡œ ë°›ì„ ì§‘ ê°€ê²©ì„ ì„¤ì • !" );
 			return false;
 		}
 		if (! is_numeric ( $price )) {
-			$this->alert ( $player, "/sa homeprice <°¡°İ> - °¡°İÀº ¹«Á¶°Ç ¼ıÀÚ¿©¾ßÇÕ´Ï´Ù !" );
+			$this->alert ( $player, "/sa homeprice <ê°€ê²©> - ê°€ê²©ì€ ë¬´ì¡°ê±´ ìˆ«ìì—¬ì•¼í•©ë‹ˆë‹¤ !" );
 			return false;
 		}
 		$this->config_Data ["economy-home-price"] = $price;
 		$this->config_Data ["economy-home-reward-price"] = $price / 2;
-		$this->message ( $player, "±âº»ÀûÀ¸·Î ¹ŞÀ» Áı °¡°İÀ» " . $count . "$ ·Î ¼³Á¤Çß½À´Ï´Ù !" );
+		$this->message ( $player, "ê¸°ë³¸ì ìœ¼ë¡œ ë°›ì„ ì§‘ ê°€ê²©ì„ " . $count . "$ ë¡œ ì„¤ì •í–ˆìŠµë‹ˆë‹¤ !" );
 		return true;
 	}
 	public function enableEonomy(Player $player) {
 		if ($this->config_Data ["economy-enable"] == true) {
 			$this->config_Data ["economy-enable"] = false;
-			$this->message ( $player, "ÀÌÄÚ³ë¹Ì¸¦ ºñÈ°¼ºÈ­ Çß½À´Ï´Ù ( ´Ù½Ã ÀÔ·Â½Ã È°¼ºÈ­ ! )" );
+			$this->message ( $player, "ì´ì½”ë…¸ë¯¸ë¥¼ ë¹„í™œì„±í™” í–ˆìŠµë‹ˆë‹¤ ( ë‹¤ì‹œ ì…ë ¥ì‹œ í™œì„±í™” ! )" );
 		} else {
 			$this->config_Data ["economy-enable"] = true;
-			$this->message ( $player, "ÀÌÄÚ³ë¹Ì¸¦ È°¼ºÈ­ Çß½À´Ï´Ù ( ´Ù½Ã ÀÔ·Â½Ã ºñÈ°¼ºÈ­ ! )" );
+			$this->message ( $player, "ì´ì½”ë…¸ë¯¸ë¥¼ í™œì„±í™” í–ˆìŠµë‹ˆë‹¤ ( ë‹¤ì‹œ ì…ë ¥ì‹œ ë¹„í™œì„±í™” ! )" );
 		}
 	}
 	public function homelimit(Player $player, $count = null) {
 		if ($count == null) {
-			$this->alert ( $player, "/sa homelimit <°¹¼ö> - º¸À¯°¡´ÉÇÑ Áı ÃÖ´ëÄ¡ ¼³Á¤" );
+			$this->alert ( $player, "/sa homelimit <ê°¯ìˆ˜> - ë³´ìœ ê°€ëŠ¥í•œ ì§‘ ìµœëŒ€ì¹˜ ì„¤ì •" );
 			return false;
 		}
 		if (! is_numeric ( $count )) {
-			$this->alert ( $player, "/sa homelimit <°¹¼ö> - °¹¼ö´Â ¹«Á¶°Ç ¼ıÀÚ¿©¾ßÇÕ´Ï´Ù !" );
+			$this->alert ( $player, "/sa homelimit <ê°¯ìˆ˜> - ê°¯ìˆ˜ëŠ” ë¬´ì¡°ê±´ ìˆ«ìì—¬ì•¼í•©ë‹ˆë‹¤ !" );
 			return false;
 		}
 		$this->config_Data ["maximum-home-limit"] = $count;
-		$this->message ( $player, "ÃÖ´ë º¸À¯°¡´É Áı °³¼ö¸¦ " . $count . "·Î ¼³Á¤Çß½À´Ï´Ù !" );
+		$this->message ( $player, "ìµœëŒ€ ë³´ìœ ê°€ëŠ¥ ì§‘ ê°œìˆ˜ë¥¼ " . $count . "ë¡œ ì„¤ì •í–ˆìŠµë‹ˆë‹¤ !" );
 		return true;
 	}
 	public function giveHome(Player $player, $target = null) {
 		if ($target == null) {
-			$this->alert ( $player, "/givehome <´ë»óÀ¯Àú¸í>" );
+			$this->alert ( $player, "/givehome <ëŒ€ìƒìœ ì €ëª…>" );
 			return false;
 		}
 		$target = $this->getServer ()->getPlayerExact ( $target );
 		if ($target == null) {
-			$this->message ( $player, "´ë»óÀÌ ¿ÀÇÁ¶óÀÎ »óÅÂÀÔ´Ï´Ù ! Áı ¾çµµ ºÒ°¡´É !" );
-			$this->message ( $player, "ÇØ´ç È¸¿ø´ÔÀÌ ·Î±×ÀÎ ÇÏ¸é ´Ù½Ã½ÃµµÇØº¸¼¼¿ä !" );
+			$this->message ( $player, "ëŒ€ìƒì´ ì˜¤í”„ë¼ì¸ ìƒíƒœì…ë‹ˆë‹¤ ! ì§‘ ì–‘ë„ ë¶ˆê°€ëŠ¥ !" );
+			$this->message ( $player, "í•´ë‹¹ íšŒì›ë‹˜ì´ ë¡œê·¸ì¸ í•˜ë©´ ë‹¤ì‹œì‹œë„í•´ë³´ì„¸ìš” !" );
 			return false;
 		}
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "ÇöÀç À§Ä¡¿¡¼­ ÁıÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." );
-			$this->alert ( $player, "Áı ¾È¿¡¼­¸¸ ¾çµµ ¸í·É¾î »ç¿ëÀÌ °¡´ÉÇÕ´Ï´Ù." );
+			$this->alert ( $player, "í˜„ì¬ ìœ„ì¹˜ì—ì„œ ì§‘ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." );
+			$this->alert ( $player, "ì§‘ ì•ˆì—ì„œë§Œ ì–‘ë„ ëª…ë ¹ì–´ ì‚¬ìš©ì´ ê°€ëŠ¥í•©ë‹ˆë‹¤." );
 			return false;
 		}
 		if (! $this->db [$player->getLevel ()->getFolderName ()]->isHome ( $area ["ID"] )) {
-			$this->alert ( $player, "ÀÌ ¿µ¿ªÀº ÁıÀÌ ¾Æ´Ñ º¸È£±¸¿ªÀÔ´Ï´Ù. ¾çµµ ºÒ°¡´É." );
+			$this->alert ( $player, "ì´ ì˜ì—­ì€ ì§‘ì´ ì•„ë‹Œ ë³´í˜¸êµ¬ì—­ì…ë‹ˆë‹¤. ì–‘ë„ ë¶ˆê°€ëŠ¥." );
 			return false;
 		}
 		if ($area ["resident"] [0] != $player->getName ()) {
-			$this->alert ( $player, "º»ÀÎÀÇ ¶¥ÀÌ ¾Æ´Õ´Ï´Ù. ¾çµµ ºÒ°¡´É." );
+			$this->alert ( $player, "ë³¸ì¸ì˜ ë•…ì´ ì•„ë‹™ë‹ˆë‹¤. ì–‘ë„ ë¶ˆê°€ëŠ¥." );
 			return false;
 		} else {
 			if ($area ["resident"] [0] == $target->getName ()) {
-				$this->alert ( $player, "ÀÚ±âÀÚ½Å¿¡°Ô ÁıÀ» °øÀ¯ÇÒ ¼ö ¾ø½À´Ï´Ù !" );
+				$this->alert ( $player, "ìê¸°ìì‹ ì—ê²Œ ì§‘ì„ ê³µìœ í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤ !" );
 				return false;
 			}
 			$this->db [$player->getLevel ()->getFolderName ()]->removeUserProperty ( $player->getName (), $area ["ID"] );
@@ -518,35 +504,35 @@ class SimpleArea extends PluginBase implements Listener {
 					$target ] );
 			$this->db [$player->getLevel ()->getFolderName ()]->addUserProperty ( $target->getName (), $area ["ID"] );
 			if ($this->checkEconomyAPI ()) $this->economyAPI->addMoney ( $player, $this->config_Data ["economy-home-reward-price"] );
-			$this->message ( $player, "ÇØ´ç ÁıÀ» {$target}´Ô¿¡°Ô ¾çµµÃ³¸® Çß½À´Ï´Ù !" );
+			$this->message ( $player, "í•´ë‹¹ ì§‘ì„ {$target}ë‹˜ì—ê²Œ ì–‘ë„ì²˜ë¦¬ í–ˆìŠµë‹ˆë‹¤ !" );
 		}
 		return true;
 	}
 	public function protectArea(Player $player) {
 		if (! isset ( $this->make_Queue [$player->getName ()] )) {
-			$this->message ( $player, "°³º°¿µ¿ª ¼³Á¤À» ½ÃÀÛÇÕ´Ï´Ù." );
-			$this->message ( $player, "¿øÇÏ½Ã´Â Å©±â¸¸Å­ ¸ğ¼­¸®¸¦ °¢°¢ ÅÍÄ¡ÇØÁÖ¼¼¿ä." );
+			$this->message ( $player, "ê°œë³„ì˜ì—­ ì„¤ì •ì„ ì‹œì‘í•©ë‹ˆë‹¤." );
+			$this->message ( $player, "ì›í•˜ì‹œëŠ” í¬ê¸°ë§Œí¼ ëª¨ì„œë¦¬ë¥¼ ê°ê° í„°ì¹˜í•´ì£¼ì„¸ìš”." );
 			$this->make_Queue [$player->getName ()] ["pos1"] = false;
 			$this->make_Queue [$player->getName ()] ["pos2"] = false;
 			return true;
 		} else {
 			if (! $this->make_Queue [$player->getName ()] ["pos1"]) {
-				$this->message ( $player, "Ã¹¹øÂ° ºÎºĞÀÌ ÁöÁ¤µÇÁö¾Ê¾Ò½À´Ï´Ù!" );
-				$this->message ( $player, "°³º°¿µ¿ª¼³Á¤À» Áß´ÜÇÏ·Á¸é (/sa cancel) !" );
+				$this->message ( $player, "ì²«ë²ˆì§¸ ë¶€ë¶„ì´ ì§€ì •ë˜ì§€ì•Šì•˜ìŠµë‹ˆë‹¤!" );
+				$this->message ( $player, "ê°œë³„ì˜ì—­ì„¤ì •ì„ ì¤‘ë‹¨í•˜ë ¤ë©´ (/sa cancel) !" );
 				return true;
 			}
 			if (! $this->make_Queue [$player->getName ()] ["pos2"]) {
-				$this->message ( $player, "µÎ¹øÂ° ºÎºĞÀÌ ÁöÁ¤µÇÁö¾Ê¾Ò½À´Ï´Ù!" );
-				$this->message ( $player, "°³º°¿µ¿ª¼³Á¤À» Áß´ÜÇÏ·Á¸é (/sa cancel) !" );
+				$this->message ( $player, "ë‘ë²ˆì§¸ ë¶€ë¶„ì´ ì§€ì •ë˜ì§€ì•Šì•˜ìŠµë‹ˆë‹¤!" );
+				$this->message ( $player, "ê°œë³„ì˜ì—­ì„¤ì •ì„ ì¤‘ë‹¨í•˜ë ¤ë©´ (/sa cancel) !" );
 				return true;
 			}
 			$pos = $this->areaPosCast ( $this->make_Queue [$player->getName ()] ["pos1"], $this->make_Queue [$player->getName ()] ["pos2"] );
 			$checkOverapArea = $this->db [$player->getLevel ()->getFolderName ()]->checkOverlap ( $pos [0], $pos [1], $pos [2], $pos [3] );
 			if ($checkOverapArea != false) {
 				if (! isset ( $this->make_Queue [$player->getName ()] ["overrap"] )) {
-					$this->message ( $player, "ÇØ´ç¿µ¿ª¿¡ Áßº¹µÇ´Â ¿µ¿ªÀÌ °¨ÁöµÇ¾ú½À´Ï´Ù! ( ID: " . $checkOverapArea ["ID"] . ")" );
-					$this->message ( $player, "°ãÄ¡´Â ¿µ¿ª¼³Á¤µéÀ» »èÁ¦ÇÏ°í ÀÌ ¿µ¿ªÀ» »ı¼ºÇÒ±î¿ä?" );
-					$this->message ( $player, "( ¿¹:/sa make ¾Æ´Ï¿ä: /sa cancel )" );
+					$this->message ( $player, "í•´ë‹¹ì˜ì—­ì— ì¤‘ë³µë˜ëŠ” ì˜ì—­ì´ ê°ì§€ë˜ì—ˆìŠµë‹ˆë‹¤! ( ID: " . $checkOverapArea ["ID"] . ")" );
+					$this->message ( $player, "ê²¹ì¹˜ëŠ” ì˜ì—­ì„¤ì •ë“¤ì„ ì‚­ì œí•˜ê³  ì´ ì˜ì—­ì„ ìƒì„±í• ê¹Œìš”?" );
+					$this->message ( $player, "( ì˜ˆ:/sa make ì•„ë‹ˆìš”: /sa cancel )" );
 					$this->make_Queue [$player->getName ()] ["overrap"] = true;
 					return true;
 				} else {
@@ -554,66 +540,66 @@ class SimpleArea extends PluginBase implements Listener {
 						$checkOverapArea = $this->db [$player->getLevel ()->getFolderName ()]->checkOverlap ( $pos [0], $pos [1], $pos [2], $pos [3] );
 						if ($checkOverapArea == false) break;
 						$this->db [$player->getLevel ()->getFolderName ()]->removeAreaById ( $checkOverapArea ["ID"] );
-						$this->message ( $player, $checkOverapArea ["ID"] . "¹ø ¿µ¿ªÀ» »èÁ¦Çß½À´Ï´Ù." );
+						$this->message ( $player, $checkOverapArea ["ID"] . "ë²ˆ ì˜ì—­ì„ ì‚­ì œí–ˆìŠµë‹ˆë‹¤." );
 					}
 				}
 			}
 			$check = $this->db [$player->getLevel ()->getFolderName ()]->addArea ( $player->getName (), $pos [0], $pos [1], $pos [2], $pos [3] );
 			unset ( $this->make_Queue [$player->getName ()] );
 			if ($check == false) {
-				$this->message ( $player, "Ã³¸®µÇÁö¾ÊÀº Áßº¹¿µ¿ªÀÌ ÀÖ½À´Ï´Ù. <»ı¼º½ÇÆĞ>" );
+				$this->message ( $player, "ì²˜ë¦¬ë˜ì§€ì•Šì€ ì¤‘ë³µì˜ì—­ì´ ìˆìŠµë‹ˆë‹¤. <ìƒì„±ì‹¤íŒ¨>" );
 				return true;
 			} else {
-				$this->message ( $player, $check . "¹ø ¿µ¿ªÀ» »ı¼ºÇß½À´Ï´Ù." );
-				$this->message ( $player, "/sa protect ·Î º¸È£¿©ºÎ¸¦ ¼³Á¤°¡´É" );
+				$this->message ( $player, $check . "ë²ˆ ì˜ì—­ì„ ìƒì„±í–ˆìŠµë‹ˆë‹¤." );
+				$this->message ( $player, "/sa protect ë¡œ ë³´í˜¸ì—¬ë¶€ë¥¼ ì„¤ì •ê°€ëŠ¥" );
 				return true;
 			}
 		}
 	}
 	public function homelist(Player $player) {
-		// TODO Ãâ·Â¹æ½Ä
-		$this->message ( $player, "/home *Áı¹øÈ£ ·Î ÇØ´ç ÁıÀ¸·Î ¿öÇÁ°¡´É" );
-		$this->message ( $player, "/buyhome Áı¹øÈ£ ·Î ÇØ´ç Áı ±¸¸Å°¡´É" );
-		// TODO /home *¹øÈ£
-		// TODO /buyhome ¹øÈ£
-		// TODO /home *¹øÈ£ ÆÛ¹Ì¼Ç
+		// TODO ì¶œë ¥ë°©ì‹
+		$this->message ( $player, "/home *ì§‘ë²ˆí˜¸ ë¡œ í•´ë‹¹ ì§‘ìœ¼ë¡œ ì›Œí”„ê°€ëŠ¥" );
+		$this->message ( $player, "/buyhome ì§‘ë²ˆí˜¸ ë¡œ í•´ë‹¹ ì§‘ êµ¬ë§¤ê°€ëŠ¥" );
+		// TODO /home *ë²ˆí˜¸
+		// TODO /buyhome ë²ˆí˜¸
+		// TODO /home *ë²ˆí˜¸ í¼ë¯¸ì…˜
 	}
 	public function whiteWorld(Player $player) {
 		if (! $this->db [$player->getLevel ()->getFolderName ()]->isWhiteWorld ()) {
 			$this->db [$player->getLevel ()->getFolderName ()]->setWhiteWorld ( true );
-			$this->message ( $player, $player->getLevel ()->getFolderName () . " ¸Ê¿¡ È­ÀÌÆ®¿ùµå ¼³Á¤À» È°¼ºÈ­ Çß½À´Ï´Ù." );
+			$this->message ( $player, $player->getLevel ()->getFolderName () . " ë§µì— í™”ì´íŠ¸ì›”ë“œ ì„¤ì •ì„ í™œì„±í™” í–ˆìŠµë‹ˆë‹¤." );
 		} else {
 			$this->db [$player->getLevel ()->getFolderName ()]->setWhiteWorld ( false );
-			$this->message ( $player, $player->getLevel ()->getFolderName () . " ¸Ê¿¡ È­ÀÌÆ®¿ùµå ¼³Á¤À» ÇØÁ¦ Çß½À´Ï´Ù." );
+			$this->message ( $player, $player->getLevel ()->getFolderName () . " ë§µì— í™”ì´íŠ¸ì›”ë“œ ì„¤ì •ì„ í•´ì œ í–ˆìŠµë‹ˆë‹¤." );
 		}
 		return true;
 	}
 	public function buyHome(Player $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "ÇöÀç À§Ä¡¿¡¼­ ¿µ¿ªÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." );
-			$this->alert ( $player, "¿µ¿ª ¾È¿¡¼­¸¸ Áı±¸¸Å ¸í·É »ç¿ëÀÌ °¡´É !" );
+			$this->alert ( $player, "í˜„ì¬ ìœ„ì¹˜ì—ì„œ ì˜ì—­ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." );
+			$this->alert ( $player, "ì˜ì—­ ì•ˆì—ì„œë§Œ ì§‘êµ¬ë§¤ ëª…ë ¹ ì‚¬ìš©ì´ ê°€ëŠ¥ !" );
 			return false;
 		} else {
 			if ($area ["resident"] == null) {
 				if ($this->checkEconomyAPI ()) {
 					$money = $this->economyAPI->myMoney ( $player );
 					if ($money < 5000) {
-						$this->message ( $player, "ÁıÀ» ±¸¸ÅÇÏ´Âµ¥ ½ÇÆĞÇß½À´Ï´Ù !" );
-						$this->message ( $player, "( Áı ±¸¸Å°¡°İ " . ($this->config_Data ["economy-home-price"] - $money) . "$ °¡ ´õ ÇÊ¿äÇÕ´Ï´Ù !" );
+						$this->message ( $player, "ì§‘ì„ êµ¬ë§¤í•˜ëŠ”ë° ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤ !" );
+						$this->message ( $player, "( ì§‘ êµ¬ë§¤ê°€ê²© " . ($this->config_Data ["economy-home-price"] - $money) . "$ ê°€ ë” í•„ìš”í•©ë‹ˆë‹¤ !" );
 						return false;
 					}
 				}
 				$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ 
 						$player->getName () ] );
 				$this->db [$player->getLevel ()->getFolderName ()]->addUserProperty ( $player->getName (), $area ["ID"] );
-				$this->message ( $player, "¼º°øÀûÀ¸·Î ÁıÀ» ±¸¸ÅÇß½À´Ï´Ù !" );
+				$this->message ( $player, "ì„±ê³µì ìœ¼ë¡œ ì§‘ì„ êµ¬ë§¤í–ˆìŠµë‹ˆë‹¤ !" );
 				if ($this->checkEconomyAPI ()) {
 					$this->economyAPI->reduceMoney ( $player, $this->config_Data ["economy-home-price"] );
-					$this->message ( $player, "( Áı ±¸¸Å°¡°İ " . $this->config_Data ["economy-home-price"] . "$ °¡ ÁöºÒ µÇ¾ú½À´Ï´Ù !" );
+					$this->message ( $player, "( ì§‘ êµ¬ë§¤ê°€ê²© " . $this->config_Data ["economy-home-price"] . "$ ê°€ ì§€ë¶ˆ ë˜ì—ˆìŠµë‹ˆë‹¤ !" );
 				}
 			} else {
-				$this->alert ( $player, "ÇØ´ç Áı¿£ ÀÌ¹Ì ¼ÒÀ¯ÀÚ°¡ ÀÖ½À´Ï´Ù. ±¸¸ÅºÒ°¡ !" );
+				$this->alert ( $player, "í•´ë‹¹ ì§‘ì—” ì´ë¯¸ ì†Œìœ ìê°€ ìˆìŠµë‹ˆë‹¤. êµ¬ë§¤ë¶ˆê°€ !" );
 				return false;
 			}
 		}
@@ -622,22 +608,22 @@ class SimpleArea extends PluginBase implements Listener {
 	public function allowBlock(Player $player, $block) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "ÇöÀç À§Ä¡¿¡¼­ ¿µ¿ªÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." );
-			$this->alert ( $player, "¿µ¿ª ¾È¿¡¼­¸¸ ¼öÁ¤Çã¿ë ºí·° ¼³Á¤ÀÌ °¡´É !" );
+			$this->alert ( $player, "í˜„ì¬ ìœ„ì¹˜ì—ì„œ ì˜ì—­ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." );
+			$this->alert ( $player, "ì˜ì—­ ì•ˆì—ì„œë§Œ ìˆ˜ì •í—ˆìš© ë¸”ëŸ­ ì„¤ì •ì´ ê°€ëŠ¥ !" );
 			return false;
 		} else {
 			if ($block == "clear") {
 				$this->db [$player->getLevel ()->getFolderName ()]->setOption ( $area ["ID"], [ ] );
-				$this->message ( $player, "¼öÁ¤Çã¿ë ºí·° ¼³Á¤À» ÃÊ±âÈ­Çß½À´Ï´Ù !" );
+				$this->message ( $player, "ìˆ˜ì •í—ˆìš© ë¸”ëŸ­ ì„¤ì •ì„ ì´ˆê¸°í™”í–ˆìŠµë‹ˆë‹¤ !" );
 				return true;
 			}
 			if (isset ( explode ( ":", $block )[1] )) {
 				if (! is_numeric ( explode ( ":", $block )[0] )) {
-					$this->alert ( $player, "ºí·° ¾ÆÀÌµğ °ªÀº ¼ıÀÚ¸¸ °¡´ÉÇÕ´Ï´Ù !" );
+					$this->alert ( $player, "ë¸”ëŸ­ ì•„ì´ë”” ê°’ì€ ìˆ«ìë§Œ ê°€ëŠ¥í•©ë‹ˆë‹¤ !" );
 					return;
 				}
 				if (! is_numeric ( explode ( ":", $block )[1] )) {
-					$this->alert ( $player, "ºí·° µ¥¹ÌÁö °ªÀº ¼ıÀÚ¸¸ °¡´ÉÇÕ´Ï´Ù !" );
+					$this->alert ( $player, "ë¸”ëŸ­ ë°ë¯¸ì§€ ê°’ì€ ìˆ«ìë§Œ ê°€ëŠ¥í•©ë‹ˆë‹¤ !" );
 					return;
 				}
 			} else {
@@ -646,33 +632,33 @@ class SimpleArea extends PluginBase implements Listener {
 			
 			$check = $this->db [$player->getLevel ()->getFolderName ()]->addOption ( $area ["ID"], $block );
 			if ($check) {
-				$this->message ( $player, "¼öÁ¤Çã¿ë ºí·° ¼³Á¤À» Ãß°¡Çß½À´Ï´Ù !" );
-				$this->message ( $player, "( /sa allow clear ¸í·É¾î·Î ¼³Á¤ ÃÊ±âÈ­°¡ °¡´ÉÇÕ´Ï´Ù !" );
+				$this->message ( $player, "ìˆ˜ì •í—ˆìš© ë¸”ëŸ­ ì„¤ì •ì„ ì¶”ê°€í–ˆìŠµë‹ˆë‹¤ !" );
+				$this->message ( $player, "( /sa allow clear ëª…ë ¹ì–´ë¡œ ì„¤ì • ì´ˆê¸°í™”ê°€ ê°€ëŠ¥í•©ë‹ˆë‹¤ !" );
 			} else {
-				$this->message ( $player, "ÇØ´ç ºí·°Àº ÀÌ¹Ì ¼öÁ¤Çã¿ë µÇ¾îÀÖ½À´Ï´Ù !" );
-				$this->message ( $player, "( /sa allow clear ¸í·É¾î·Î ¼³Á¤ ÃÊ±âÈ­°¡ °¡´ÉÇÕ´Ï´Ù !" );
+				$this->message ( $player, "í•´ë‹¹ ë¸”ëŸ­ì€ ì´ë¯¸ ìˆ˜ì •í—ˆìš© ë˜ì–´ìˆìŠµë‹ˆë‹¤ !" );
+				$this->message ( $player, "( /sa allow clear ëª…ë ¹ì–´ë¡œ ì„¤ì • ì´ˆê¸°í™”ê°€ ê°€ëŠ¥í•©ë‹ˆë‹¤ !" );
 			}
 		}
 	}
 	public function forbidBlock(Player $player, $block) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "ÇöÀç À§Ä¡¿¡¼­ ¿µ¿ªÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." );
-			$this->alert ( $player, "¿µ¿ª ¾È¿¡¼­¸¸ ¼öÁ¤±İÁö ºí·° ¼³Á¤ÀÌ °¡´É !" );
+			$this->alert ( $player, "í˜„ì¬ ìœ„ì¹˜ì—ì„œ ì˜ì—­ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." );
+			$this->alert ( $player, "ì˜ì—­ ì•ˆì—ì„œë§Œ ìˆ˜ì •ê¸ˆì§€ ë¸”ëŸ­ ì„¤ì •ì´ ê°€ëŠ¥ !" );
 			return false;
 		} else {
 			if ($block == "clear") {
 				$this->db [$player->getLevel ()->getFolderName ()]->setOption ( $area ["ID"], [ ] );
-				$this->message ( $player, "¼öÁ¤±İÁö ºí·° ¼³Á¤À» ÃÊ±âÈ­Çß½À´Ï´Ù !" );
+				$this->message ( $player, "ìˆ˜ì •ê¸ˆì§€ ë¸”ëŸ­ ì„¤ì •ì„ ì´ˆê¸°í™”í–ˆìŠµë‹ˆë‹¤ !" );
 				return true;
 			}
 			if (isset ( explode ( ":", $block )[1] )) {
 				if (! is_numeric ( explode ( ":", $block )[0] )) {
-					$this->alert ( $player, "ºí·° ¾ÆÀÌµğ °ªÀº ¼ıÀÚ¸¸ °¡´ÉÇÕ´Ï´Ù !" );
+					$this->alert ( $player, "ë¸”ëŸ­ ì•„ì´ë”” ê°’ì€ ìˆ«ìë§Œ ê°€ëŠ¥í•©ë‹ˆë‹¤ !" );
 					return;
 				}
 				if (! is_numeric ( explode ( ":", $block )[1] )) {
-					$this->alert ( $player, "ºí·° µ¥¹ÌÁö °ªÀº ¼ıÀÚ¸¸ °¡´ÉÇÕ´Ï´Ù !" );
+					$this->alert ( $player, "ë¸”ëŸ­ ë°ë¯¸ì§€ ê°’ì€ ìˆ«ìë§Œ ê°€ëŠ¥í•©ë‹ˆë‹¤ !" );
 					return;
 				}
 			} else {
@@ -681,100 +667,100 @@ class SimpleArea extends PluginBase implements Listener {
 			
 			$check = $this->db [$player->getLevel ()->getFolderName ()]->addOption ( $area ["ID"], $block );
 			if ($check) {
-				$this->message ( $player, "¼öÁ¤±İÁö ºí·° ¼³Á¤À» Ãß°¡Çß½À´Ï´Ù !" );
-				$this->message ( $player, "( /sa forbid clear ¸í·É¾î·Î ¼³Á¤ ÃÊ±âÈ­°¡ °¡´ÉÇÕ´Ï´Ù !" );
+				$this->message ( $player, "ìˆ˜ì •ê¸ˆì§€ ë¸”ëŸ­ ì„¤ì •ì„ ì¶”ê°€í–ˆìŠµë‹ˆë‹¤ !" );
+				$this->message ( $player, "( /sa forbid clear ëª…ë ¹ì–´ë¡œ ì„¤ì • ì´ˆê¸°í™”ê°€ ê°€ëŠ¥í•©ë‹ˆë‹¤ !" );
 			} else {
-				$this->message ( $player, "ÇØ´ç ºí·°Àº ÀÌ¹Ì ¼öÁ¤±İÁö µÇ¾îÀÖ½À´Ï´Ù !" );
-				$this->message ( $player, "( /sa forbid clear ¸í·É¾î·Î ¼³Á¤ ÃÊ±âÈ­°¡ °¡´ÉÇÕ´Ï´Ù !" );
+				$this->message ( $player, "í•´ë‹¹ ë¸”ëŸ­ì€ ì´ë¯¸ ìˆ˜ì •ê¸ˆì§€ ë˜ì–´ìˆìŠµë‹ˆë‹¤ !" );
+				$this->message ( $player, "( /sa forbid clear ëª…ë ¹ì–´ë¡œ ì„¤ì • ì´ˆê¸°í™”ê°€ ê°€ëŠ¥í•©ë‹ˆë‹¤ !" );
 			}
 		}
 	}
 	public function protect(Player $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "ÇöÀç À§Ä¡¿¡¼­ ¿µ¿ªÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." );
-			$this->alert ( $player, "¿µ¿ª ¾È¿¡¼­¸¸ ÁöÇü¼öÁ¤ Çã¿ëÀ¯¹« ¼³Á¤ÀÌ °¡´É !" );
+			$this->alert ( $player, "í˜„ì¬ ìœ„ì¹˜ì—ì„œ ì˜ì—­ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." );
+			$this->alert ( $player, "ì˜ì—­ ì•ˆì—ì„œë§Œ ì§€í˜•ìˆ˜ì • í—ˆìš©ìœ ë¬´ ì„¤ì •ì´ ê°€ëŠ¥ !" );
 			return false;
 		} else {
 			if ($this->db [$player->getLevel ()->getFolderName ()]->isProtected ( $area ["ID"] )) {
 				$this->db [$player->getLevel ()->getFolderName ()]->setProtected ( $area ["ID"], false );
 				$this->db [$player->getLevel ()->getFolderName ()]->setOption ( $area ["ID"], [ ] );
-				$this->message ( $player, "ÁöÇü¼öÁ¤ Çã¿ë ¼³Á¤ÀÌ ¿Ï·áµÇ¾ú½À´Ï´Ù !" );
-				$this->message ( $player, "( / sa forbid ºí·°¾ÆÀÌµğ - º°µµ·Î ±İÁöÇÒ ºí·°¼³Á¤ °¡´É )" );
+				$this->message ( $player, "ì§€í˜•ìˆ˜ì • í—ˆìš© ì„¤ì •ì´ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤ !" );
+				$this->message ( $player, "( / sa forbid ë¸”ëŸ­ì•„ì´ë”” - ë³„ë„ë¡œ ê¸ˆì§€í•  ë¸”ëŸ­ì„¤ì • ê°€ëŠ¥ )" );
 			} else {
 				$this->db [$player->getLevel ()->getFolderName ()]->setProtected ( $area ["ID"], true );
 				$this->db [$player->getLevel ()->getFolderName ()]->setOption ( $area ["ID"], [ ] );
-				$this->message ( $player, "ÁöÇü¼öÁ¤ ºñÇã¿ë ¼³Á¤ÀÌ ¿Ï·áµÇ¾ú½À´Ï´Ù !" );
-				$this->message ( $player, "( / sa allow ºí·°¾ÆÀÌµğ - º°µµ·Î Çã¿ëÇÒ ºí·°¼³Á¤ °¡´É )" );
+				$this->message ( $player, "ì§€í˜•ìˆ˜ì • ë¹„í—ˆìš© ì„¤ì •ì´ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤ !" );
+				$this->message ( $player, "( / sa allow ë¸”ëŸ­ì•„ì´ë”” - ë³„ë„ë¡œ í—ˆìš©í•  ë¸”ëŸ­ì„¤ì • ê°€ëŠ¥ )" );
 			}
 		}
 	}
 	public function pvp(Player $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "ÇöÀç À§Ä¡¿¡¼­ ¿µ¿ªÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." );
-			$this->alert ( $player, "¿µ¿ª ¾È¿¡¼­¸¸ PVP Çã¿ë/ºñÇã¿ë ¼³Á¤ÀÌ°¡´ÉÇÕ´Ï´Ù." );
+			$this->alert ( $player, "í˜„ì¬ ìœ„ì¹˜ì—ì„œ ì˜ì—­ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." );
+			$this->alert ( $player, "ì˜ì—­ ì•ˆì—ì„œë§Œ PVP í—ˆìš©/ë¹„í—ˆìš© ì„¤ì •ì´ê°€ëŠ¥í•©ë‹ˆë‹¤." );
 			return false;
 		} else {
 			if ($this->db [$player->getLevel ()->getFolderName ()]->isPvpAllow ( $area ["ID"] )) {
 				$this->db [$player->getLevel ()->getFolderName ()]->setPvpAllow ( $area ["ID"], false );
-				$this->message ( $player, "PVP ºñÇã¿ë ¼³Á¤ÀÌ ¿Ï·áµÇ¾ú½À´Ï´Ù!" );
-				$this->message ( $player, "( /sa pvp ´Ù½Ã ÀÔ·Â½Ã Çã¿ë¼³Á¤ °¡´É )" );
+				$this->message ( $player, "PVP ë¹„í—ˆìš© ì„¤ì •ì´ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤!" );
+				$this->message ( $player, "( /sa pvp ë‹¤ì‹œ ì…ë ¥ì‹œ í—ˆìš©ì„¤ì • ê°€ëŠ¥ )" );
 			} else {
 				$this->db [$player->getLevel ()->getFolderName ()]->setPvpAllow ( $area ["ID"], true );
-				$this->message ( $player, "PVP Çã¿ë ¼³Á¤ÀÌ ¿Ï·áµÇ¾ú½À´Ï´Ù!" );
-				$this->message ( $player, "( /sa pvp ´Ù½Ã ÀÔ·Â½Ã ºñÇã¿ë¼³Á¤ °¡´É )" );
+				$this->message ( $player, "PVP í—ˆìš© ì„¤ì •ì´ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤!" );
+				$this->message ( $player, "( /sa pvp ë‹¤ì‹œ ì…ë ¥ì‹œ ë¹„í—ˆìš©ì„¤ì • ê°€ëŠ¥ )" );
 			}
 		}
 	}
 	public function welcome(Player $player, $text) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "ÇöÀç À§Ä¡¿¡¼­ ÁıÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." );
-			$this->alert ( $player, "Áı ¾È¿¡¼­¸¸ È¯¿µ¸Ş½ÃÁö ¼³Á¤ÀÌ°¡´ÉÇÕ´Ï´Ù." );
+			$this->alert ( $player, "í˜„ì¬ ìœ„ì¹˜ì—ì„œ ì§‘ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." );
+			$this->alert ( $player, "ì§‘ ì•ˆì—ì„œë§Œ í™˜ì˜ë©”ì‹œì§€ ì„¤ì •ì´ê°€ëŠ¥í•©ë‹ˆë‹¤." );
 			return false;
 		} else {
 			if ($area ["resident"] [0] != $player->getName () and ! $player->isOp ()) {
-				$this->alert ( $player, "º»ÀÎÀÇ ¶¥ÀÌ ¾Æ´Õ´Ï´Ù. È¯¿µ¸Ş½ÃÁö ¼³Á¤ ºÒ°¡´É." );
+				$this->alert ( $player, "ë³¸ì¸ì˜ ë•…ì´ ì•„ë‹™ë‹ˆë‹¤. í™˜ì˜ë©”ì‹œì§€ ì„¤ì • ë¶ˆê°€ëŠ¥." );
 				return false;
 			}
 			$this->db [$player->getLevel ()->getFolderName ()]->setWelcome ( $area ["ID"], $text );
-			$this->message ( $player, "È¯¿µ¸Ş½ÃÁö ¼³Á¤ÀÌ ¿Ï·áµÇ¾ú½À´Ï´Ù!" );
+			$this->message ( $player, "í™˜ì˜ë©”ì‹œì§€ ì„¤ì •ì´ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤!" );
 		}
 	}
 	public function sellHome(Player $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "ÇöÀç À§Ä¡¿¡¼­ ÁıÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." );
-			$this->alert ( $player, "Áı ¾È¿¡¼­¸¸ ÆÇ¸Å ¸í·É¾î »ç¿ëÀÌ °¡´ÉÇÕ´Ï´Ù." );
+			$this->alert ( $player, "í˜„ì¬ ìœ„ì¹˜ì—ì„œ ì§‘ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." );
+			$this->alert ( $player, "ì§‘ ì•ˆì—ì„œë§Œ íŒë§¤ ëª…ë ¹ì–´ ì‚¬ìš©ì´ ê°€ëŠ¥í•©ë‹ˆë‹¤." );
 			return false;
 		}
 		if (! $this->db [$player->getLevel ()->getFolderName ()]->isHome ( $area ["ID"] )) {
-			$this->alert ( $player, "ÀÌ ¿µ¿ªÀº ÁıÀÌ ¾Æ´Ñ º¸È£±¸¿ªÀÔ´Ï´Ù. ÆÇ¸Å ºÒ°¡´É." );
+			$this->alert ( $player, "ì´ ì˜ì—­ì€ ì§‘ì´ ì•„ë‹Œ ë³´í˜¸êµ¬ì—­ì…ë‹ˆë‹¤. íŒë§¤ ë¶ˆê°€ëŠ¥." );
 			return false;
 		}
 		if ($area ["resident"] [0] != $player->getName () and ! $player->isOp ()) {
-			$this->alert ( $player, "º»ÀÎÀÇ ¶¥ÀÌ ¾Æ´Õ´Ï´Ù. ÆÇ¸Å ºÒ°¡´É." );
+			$this->alert ( $player, "ë³¸ì¸ì˜ ë•…ì´ ì•„ë‹™ë‹ˆë‹¤. íŒë§¤ ë¶ˆê°€ëŠ¥." );
 			return false;
 		} else {
 			$this->db [$player->getLevel ()->getFolderName ()]->removeUserProperty ( $player->getName (), $area ["ID"] );
 			$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ ] );
-			$this->message ( $player, "ÇØ´ç ÁıÀ» ÆÇ¸ÅÃ³¸® Çß½À´Ï´Ù !" );
+			$this->message ( $player, "í•´ë‹¹ ì§‘ì„ íŒë§¤ì²˜ë¦¬ í–ˆìŠµë‹ˆë‹¤ !" );
 			if ($this->checkEconomyAPI ()) {
 				$this->economyAPI->addMoney ( $player, $this->config_Data ["economy-home-reward-price"] );
-				$this->message ( $player, "º¸»ó±İ¾× : " . $this->config_Data ["economy-home-reward-price"] . "$ ÀÌ Áö±ŞµÇ¾ú½À´Ï´Ù !" );
+				$this->message ( $player, "ë³´ìƒê¸ˆì•¡ : " . $this->config_Data ["economy-home-reward-price"] . "$ ì´ ì§€ê¸‰ë˜ì—ˆìŠµë‹ˆë‹¤ !" );
 			}
 		}
 	}
 	public function goHome(Player $player, $home_number) {
 		if (! is_numeric ( $home_number )) {
-			$this->alert ( $player, "Áı¹øÈ£´Â ¼ıÀÚ¸¸ °¡´ÉÇÕ´Ï´Ù !" );
+			$this->alert ( $player, "ì§‘ë²ˆí˜¸ëŠ” ìˆ«ìë§Œ ê°€ëŠ¥í•©ë‹ˆë‹¤ !" );
 			return false;
 		}
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getUserHome ( $player->getName (), $home_number );
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getAreaById ( $area );
 		if ($area == false) {
-			$this->alert ( $player, "ÇØ´ç ¹øÈ£ÀÇ ÁıÀº Á¸ÀçÇÏÁö¾Ê½À´Ï´Ù" );
+			$this->alert ( $player, "í•´ë‹¹ ë²ˆí˜¸ì˜ ì§‘ì€ ì¡´ì¬í•˜ì§€ì•ŠìŠµë‹ˆë‹¤" );
 			return false;
 		}
 		$x = (($area ["startX"]) + 1);
@@ -786,54 +772,54 @@ class SimpleArea extends PluginBase implements Listener {
 	public function printHomeList(Player $player) {
 		$homes = $this->db [$player->getLevel ()->getFolderName ()]->getUserHomes ( $player->getName () );
 		if ($homes == false) {
-			$this->alert ( $player, "¿µ¿ªÀ» ¼ÒÀ¯ÇÏ°í ÀÖÁö ¾Ê½À´Ï´Ù !" );
+			$this->alert ( $player, "ì˜ì—­ì„ ì†Œìœ í•˜ê³  ìˆì§€ ì•ŠìŠµë‹ˆë‹¤ !" );
 			return false;
 		}
-		$this->message ( $player, "º¸À¯ ÁßÀÎ Áı¸®½ºÆ®¸¦ Ãâ·ÂÇÕ´Ï´Ù. (Áı¹øÈ£·Î ¿öÇÁ)" );
+		$this->message ( $player, "ë³´ìœ  ì¤‘ì¸ ì§‘ë¦¬ìŠ¤íŠ¸ë¥¼ ì¶œë ¥í•©ë‹ˆë‹¤. (ì§‘ë²ˆí˜¸ë¡œ ì›Œí”„)" );
 		foreach ( $homes as $index => $home ) {
-			$this->message ( $player, $index . "¹ø " );
+			$this->message ( $player, $index . "ë²ˆ " );
 		}
 		return true;
 	}
 	public function helpPage(Player $player, $pageNumber = 1) {
-		$this->message ( $player, "* ½ÉÇÃ¿À½º ¼³¸íÀ» Ãâ·ÂÇÕ´Ï´Ù (" . $pageNumber . "/2) *" );
+		$this->message ( $player, "* ì‹¬í”Œì˜¤ìŠ¤ ì„¤ëª…ì„ ì¶œë ¥í•©ë‹ˆë‹¤ (" . $pageNumber . "/2) *" );
 		if ($pageNumber == 1) {
-			$this->message ( $player, "/sa whiteworld - È­ÀÌÆ®¿ùµå ¼³Á¤", "" );
-			$this->message ( $player, "/sa make - º°µµ ¿µ¿ªº¸È£ ¼³Á¤", "" );
-			$this->message ( $player, "/sa delete - ¿µ¿ªº¸È£-È¨ »èÁ¦", "" );
-			$this->message ( $player, "/sa protect - ¿µ¿ª ÁöÇüº¸È£¿©ºÎ ¼³Á¤", "" );
-			$this->message ( $player, "/sa allow - ¼öÁ¤ Çã¿ë½ÃÅ³ ºí·° ¼³Á¤", "" );
-			$this->message ( $player, "/sa forbid - ¼öÁ¤ ±İÁö½ÃÅ³ ºí·° ¼³Á¤", "" );
-			$this->message ( $player, "( /sa help 1|2 - ¼³¸í¹®À» Ãâ·ÂÇÕ´Ï´Ù ) " );
+			$this->message ( $player, "/sa whiteworld - í™”ì´íŠ¸ì›”ë“œ ì„¤ì •", "" );
+			$this->message ( $player, "/sa make - ë³„ë„ ì˜ì—­ë³´í˜¸ ì„¤ì •", "" );
+			$this->message ( $player, "/sa delete - ì˜ì—­ë³´í˜¸-í™ˆ ì‚­ì œ", "" );
+			$this->message ( $player, "/sa protect - ì˜ì—­ ì§€í˜•ë³´í˜¸ì—¬ë¶€ ì„¤ì •", "" );
+			$this->message ( $player, "/sa allow - ìˆ˜ì • í—ˆìš©ì‹œí‚¬ ë¸”ëŸ­ ì„¤ì •", "" );
+			$this->message ( $player, "/sa forbid - ìˆ˜ì • ê¸ˆì§€ì‹œí‚¬ ë¸”ëŸ­ ì„¤ì •", "" );
+			$this->message ( $player, "( /sa help 1|2 - ì„¤ëª…ë¬¸ì„ ì¶œë ¥í•©ë‹ˆë‹¤ ) " );
 		} else {
-			$this->message ( $player, "/sa homelimit - ¿µ¿ªº¸À¯ÇÑ°è ¼³Á¤", "" );
-			$this->message ( $player, "/sa economy - ÀÌÄÚ³ë¹Ì È°¼ºÈ­ ¼³Á¤", "" );
-			$this->message ( $player, "/sa homeprice - Áı°¡°İ ¼³Á¤", "" );
-			$this->message ( $player, "/sa hometax - ÅäÁö¼¼ ¼³Á¤", "" );
-			$this->message ( $player, "/sa fence - ÀÚµ¿¿ïÅ¸¸®°ü·Ã ¼³Á¤", "" );
-			$this->message ( $player, "/sa message - ±İÁö¸Ş½ÃÁöÇ¥½Ã ¼³Á¤", "" );
-			$this->message ( $player, "( /sa help 1|2 - ¼³¸í¹®À» Ãâ·ÂÇÕ´Ï´Ù ) " );
+			$this->message ( $player, "/sa homelimit - ì˜ì—­ë³´ìœ í•œê³„ ì„¤ì •", "" );
+			$this->message ( $player, "/sa economy - ì´ì½”ë…¸ë¯¸ í™œì„±í™” ì„¤ì •", "" );
+			$this->message ( $player, "/sa homeprice - ì§‘ê°€ê²© ì„¤ì •", "" );
+			$this->message ( $player, "/sa landtax - í† ì§€ì„¸ ì„¤ì •", "" );
+			$this->message ( $player, "/sa fence - ìë™ìš¸íƒ€ë¦¬ê´€ë ¨ ì„¤ì •", "" );
+			$this->message ( $player, "/sa message - ê¸ˆì§€ë©”ì‹œì§€í‘œì‹œ ì„¤ì •", "" );
+			$this->message ( $player, "( /sa help 1|2 - ì„¤ëª…ë¬¸ì„ ì¶œë ¥í•©ë‹ˆë‹¤ ) " );
 		}
 	}
 	public function invite(Player $player, $invited) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "ÇöÀç À§Ä¡¿¡¼­ ÁıÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." );
-			$this->alert ( $player, "Áı ¾È¿¡¼­¸¸ °øÀ¯ ¸í·É¾î »ç¿ëÀÌ°¡´ÉÇÕ´Ï´Ù." );
+			$this->alert ( $player, "í˜„ì¬ ìœ„ì¹˜ì—ì„œ ì§‘ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." );
+			$this->alert ( $player, "ì§‘ ì•ˆì—ì„œë§Œ ê³µìœ  ëª…ë ¹ì–´ ì‚¬ìš©ì´ê°€ëŠ¥í•©ë‹ˆë‹¤." );
 			return false;
 		}
 		if ($area ["resident"] [0] != $player->getName ()) {
-			$this->alert ( $player, "º»ÀÎÀÇ ¶¥ÀÌ ¾Æ´Õ´Ï´Ù. ÃÊ´ë ºÒ°¡´É." );
+			$this->alert ( $player, "ë³¸ì¸ì˜ ë•…ì´ ì•„ë‹™ë‹ˆë‹¤. ì´ˆëŒ€ ë¶ˆê°€ëŠ¥." );
 			return false;
 		} else {
 			if ($area ["resident"] [0] == $invited) {
-				$this->alert ( $player, "ÀÚ±âÀÚ½Å¿¡°Ô ÁıÀ» °øÀ¯ÇÒ ¼ö ¾ø½À´Ï´Ù !" );
+				$this->alert ( $player, "ìê¸°ìì‹ ì—ê²Œ ì§‘ì„ ê³µìœ í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤ !" );
 				return false;
 			}
 			foreach ( $area ["resident"] as $resident ) {
 				if ($invited == $resident) {
-					$this->alert ( $player, $resident . "´ÔÀº ÀÌ¹Ì ÀÌÁıÀ» °øÀ¯ ¹Ş¾Ò½À´Ï´Ù !" );
-					$this->message ( $player, "( /inviteclear ·Î ¸ğµç °øÀ¯ ÇØÁ¦°¡´É )" );
+					$this->alert ( $player, $resident . "ë‹˜ì€ ì´ë¯¸ ì´ì§‘ì„ ê³µìœ  ë°›ì•˜ìŠµë‹ˆë‹¤ !" );
+					$this->message ( $player, "( /inviteclear ë¡œ ëª¨ë“  ê³µìœ  í•´ì œê°€ëŠ¥ )" );
 					return false;
 				}
 			}
@@ -843,15 +829,15 @@ class SimpleArea extends PluginBase implements Listener {
 				$this->db [$player->getLevel ()->getFolderName ()]->addResident ( $area ["ID"], $invite->getName () );
 				$this->db [$player->getLevel ()->getFolderName ()]->addUserProperty ( $invite->getName (), $area ["ID"] );
 				
-				$this->message ( $player, "ÀÌ ÁıÀ» " . $invited . "´Ô°ú °øÀ¯Çß½À´Ï´Ù." );
-				$this->message ( $player, "( /inviteclear ·Î ¸ğµç °øÀ¯ ÇØÁ¦°¡´É )" );
-				$this->message ( $player, "( /invitelist ·Î ÀÌ ÁıÀÇ °øÀ¯ ³»¿ª È®ÀÎ°¡´É )" );
+				$this->message ( $player, "ì´ ì§‘ì„ " . $invited . "ë‹˜ê³¼ ê³µìœ í–ˆìŠµë‹ˆë‹¤." );
+				$this->message ( $player, "( /inviteclear ë¡œ ëª¨ë“  ê³µìœ  í•´ì œê°€ëŠ¥ )" );
+				$this->message ( $player, "( /invitelist ë¡œ ì´ ì§‘ì˜ ê³µìœ  ë‚´ì—­ í™•ì¸ê°€ëŠ¥ )" );
 				
-				$this->message ( $invite, $area ["ID"] . "¹ø ÁıÀ» " . $player->getName () . "´ÔÀÌ °øÀ¯Çß½À´Ï´Ù !" );
-				$this->message ( $invite, "( /inviteout À¸·Î ¹ŞÀº ÃÊ´ë¸¦ ÇØÁ¦ÇÒ ¼ö ÀÖ½À´Ï´Ù ! )" );
-				$this->message ( $invite, "( /invitelist ·Î ÀÌ ÁıÀÇ °øÀ¯ ³»¿ª È®ÀÎ°¡´É )" );
+				$this->message ( $invite, $area ["ID"] . "ë²ˆ ì§‘ì„ " . $player->getName () . "ë‹˜ì´ ê³µìœ í–ˆìŠµë‹ˆë‹¤ !" );
+				$this->message ( $invite, "( /inviteout ìœ¼ë¡œ ë°›ì€ ì´ˆëŒ€ë¥¼ í•´ì œí•  ìˆ˜ ìˆìŠµë‹ˆë‹¤ ! )" );
+				$this->message ( $invite, "( /invitelist ë¡œ ì´ ì§‘ì˜ ê³µìœ  ë‚´ì—­ í™•ì¸ê°€ëŠ¥ )" );
 			} else {
-				$this->alert ( $player, "ÇØ´ç À¯Àú°¡ ¿ÀÇÁ¶óÀÎ ÀÔ´Ï´Ù ! ( ÃÊ´ëºÒ°¡´É )" );
+				$this->alert ( $player, "í•´ë‹¹ ìœ ì €ê°€ ì˜¤í”„ë¼ì¸ ì…ë‹ˆë‹¤ ! ( ì´ˆëŒ€ë¶ˆê°€ëŠ¥ )" );
 			}
 		}
 		return true;
@@ -859,59 +845,74 @@ class SimpleArea extends PluginBase implements Listener {
 	public function inviteout(Player $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "ÇöÀç À§Ä¡¿¡¼­ ÁıÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." );
-			$this->alert ( $player, "Áı ¾È¿¡¼­¸¸ ÃÊ´ëÇØÁ¦ ¸í·É¾î »ç¿ëÀÌ°¡´ÉÇÕ´Ï´Ù." );
+			$this->alert ( $player, "í˜„ì¬ ìœ„ì¹˜ì—ì„œ ì§‘ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." );
+			$this->alert ( $player, "ì§‘ ì•ˆì—ì„œë§Œ ì´ˆëŒ€í•´ì œ ëª…ë ¹ì–´ ì‚¬ìš©ì´ê°€ëŠ¥í•©ë‹ˆë‹¤." );
 			return false;
 		}
 		if ($area ["resident"] [0] == $player->getName ()) {
-			$this->alert ( $player, "º»ÀÎÀÇ ¶¥ÀÔ´Ï´Ù, ÃÊ´ëÇØÁ¦ ºÒ°¡´É !" );
+			$this->alert ( $player, "ë³¸ì¸ì˜ ë•…ì…ë‹ˆë‹¤, ì´ˆëŒ€í•´ì œ ë¶ˆê°€ëŠ¥ !" );
 			return false;
 		} else {
 			foreach ( $area ["resident"] as $index => $resident ) {
 				if ($player->getName () == $resident) {
 					$this->db [$player->getLevel ()->getFolderName ()]->removeUserProperty ( $resident, $area ["ID"] );
 					$this->db [$player->getLevel ()->getFolderName ()]->removeResident ( $area ["ID"], $resident );
-					$this->message ( $player, "Á¤»óÀûÀ¸·Î ÃÊ´ë¸¦ ÇØÁ¦Çß½À´Ï´Ù !" );
+					$this->message ( $player, "ì •ìƒì ìœ¼ë¡œ ì´ˆëŒ€ë¥¼ í•´ì œí–ˆìŠµë‹ˆë‹¤ !" );
 					
 					$owner = $this->getServer ()->getPlayerExact ( $area ["resident"] [0] );
-					if ($owner != null) $this->message ( $owner, "{$area ["ID"]}¹ø Áı¿¡¼­ {$player->getName()}´ÔÀÌ °øÀ¯¸¦ ÇØÁ¦Çß½À´Ï´Ù" );
+					if ($owner != null) $this->message ( $owner, "{$area ["ID"]}ë²ˆ ì§‘ì—ì„œ {$player->getName()}ë‹˜ì´ ê³µìœ ë¥¼ í•´ì œí–ˆìŠµë‹ˆë‹¤" );
 					return true;
 				}
 			}
-			$this->alert ( $player, "ÀÌ Áı¿¡ ÃÊ´ë¹ŞÀº ÀÌ·ÂÀÌ ¾ø½À´Ï´Ù ! ( ÃÊ´ëÇØÁ¦ ºÒ°¡´É ! )" );
+			$this->alert ( $player, "ì´ ì§‘ì— ì´ˆëŒ€ë°›ì€ ì´ë ¥ì´ ì—†ìŠµë‹ˆë‹¤ ! ( ì´ˆëŒ€í•´ì œ ë¶ˆê°€ëŠ¥ ! )" );
 			return false;
 		}
 	}
 	public function invitelist(Player $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "ÇöÀç À§Ä¡¿¡¼­ ÁıÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." );
-			$this->alert ( $player, "Áı ¾È¿¡¼­¸¸ ÃÊ´ë¸®½ºÆ® ¸í·É¾î »ç¿ëÀÌ°¡´ÉÇÕ´Ï´Ù." );
+			$this->alert ( $player, "í˜„ì¬ ìœ„ì¹˜ì—ì„œ ì§‘ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." );
+			$this->alert ( $player, "ì§‘ ì•ˆì—ì„œë§Œ ì´ˆëŒ€ë¦¬ìŠ¤íŠ¸ ëª…ë ¹ì–´ ì‚¬ìš©ì´ê°€ëŠ¥í•©ë‹ˆë‹¤." );
 			return false;
 		} else {
 			$residents = null;
 			foreach ( $area ["resident"] as $index => $resident )
 				$residents .= "[{$index}]" . $resident . " ";
-			$this->message ( $player, "ÀÌ ÁıÀ» °øÀ¯ ¹Ş°í ÀÖ´Â À¯Àú¸¦ Ãâ·ÂÇÕ´Ï´Ù !\n{$residents}" );
+			$this->message ( $player, "ì´ ì§‘ì„ ê³µìœ  ë°›ê³  ìˆëŠ” ìœ ì €ë¥¼ ì¶œë ¥í•©ë‹ˆë‹¤ !\n{$residents}" );
 			return true;
 		}
+	}
+	public function printInviteList(CommandSender $player) {
+		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
+		if ($area == null) {
+			$this->alert ( $player, "í˜„ì¬ ìœ„ì¹˜ì—ì„œ ì§‘ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." );
+			$this->alert ( $player, "ì§‘ ì•ˆì—ì„œë§Œ ê³µìœ í™•ì¸ ëª…ë ¹ì–´ ì‚¬ìš©ì´ê°€ëŠ¥í•©ë‹ˆë‹¤." );
+			return false;
+		}
+		if ($area ["resident"] [0] != $player->getName ()) {
+			$this->alert ( $player, "ë³¸ì¸ì˜ ë•…ì´ ì•„ë‹™ë‹ˆë‹¤. ì´ˆëŒ€í™•ì¸ ë¶ˆê°€ëŠ¥." );
+			return false;
+		} else {
+			$this->message ( $player, "ì´ì§‘ì„ ê³µìœ  ì¤‘ì¸ ìœ ì €ë¥¼ ì¶œë ¥í•©ë‹ˆë‹¤.(" . count () . ")" );
+		}
+		return true;
 	}
 	public function inviteclear(Player $player) {
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == null) {
-			$this->alert ( $player, "ÇöÀç À§Ä¡¿¡¼­ ÁıÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." );
-			$this->alert ( $player, "Áı ¾È¿¡¼­¸¸ °øÀ¯ÇØÁ¦ ¸í·É¾î »ç¿ëÀÌ°¡´ÉÇÕ´Ï´Ù." );
+			$this->alert ( $player, "í˜„ì¬ ìœ„ì¹˜ì—ì„œ ì§‘ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." );
+			$this->alert ( $player, "ì§‘ ì•ˆì—ì„œë§Œ ê³µìœ í•´ì œ ëª…ë ¹ì–´ ì‚¬ìš©ì´ê°€ëŠ¥í•©ë‹ˆë‹¤." );
 			return false;
 		}
 		if ($area ["resident"] [0] != $player->getName ()) {
-			$this->alert ( $player, "º»ÀÎÀÇ ¶¥ÀÌ ¾Æ´Õ´Ï´Ù. ÃÊ´ë»èÁ¦ ºÒ°¡´É." );
+			$this->alert ( $player, "ë³¸ì¸ì˜ ë•…ì´ ì•„ë‹™ë‹ˆë‹¤. ì´ˆëŒ€ì‚­ì œ ë¶ˆê°€ëŠ¥." );
 			return false;
 		} else {
 			foreach ( $area ["resident"] as $res )
 				if ($res != $player->getName ()) $this->db [$player->getLevel ()->getFolderName ()]->removeUserProperty ( $res, $area ["ID"] );
 			$this->db [$player->getLevel ()->getFolderName ()]->setResident ( $area ["ID"], [ 
 					$player->getName () ] );
-			$this->message ( $player, "ÀÌ ÁıÀÇ °øÀ¯Çã¿ëÀ» ¸ğµÎ ÇØÁ¦Çß½À´Ï´Ù." );
+			$this->message ( $player, "ì´ ì§‘ì˜ ê³µìœ í—ˆìš©ì„ ëª¨ë‘ í•´ì œí–ˆìŠµë‹ˆë‹¤." );
 		}
 		
 		return true;
@@ -941,15 +942,15 @@ class SimpleArea extends PluginBase implements Listener {
 		if ($this->checkEconomyEnable () and $this->checkEconomyAPI ()) {
 			$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 			if ($area == false) {
-				$this->alert ( $player, "¿µ¿ªÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." );
+				$this->alert ( $player, "ì˜ì—­ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." );
 				return false;
 			}
 			if ($area ["resident"] [0] == $player->getName ()) {
 				if (isset ( $this->rent_Queue [$player->getName ()] )) {
 					$money = $this->economyAPI->myMoney ( $this->rent_Queue [$player->getName ()] ["buyer"] );
 					if ($money < $price) {
-						$this->alert ( $this->rent_Queue [$player->getName ()] ["buyer"], "ÁöºÒÇÏ·Á´Â ÀÓ´ëºñ°¡ ºÎÁ·ÇÕ´Ï´Ù ! ÀÓ´ë½ÅÃ» ½ÇÆĞ !" );
-						$this->alert ( $player, "ÀÓ´ë ½ÅÃ»ÀÚÀÇ µ·ÀÌ ºÎÁ·ÇØÁ®¼­ ÀÓ´ë½ÅÃ»ÀÌ Ãë¼ÒµÇ¾ú½À´Ï´Ù" );
+						$this->alert ( $this->rent_Queue [$player->getName ()] ["buyer"], "ì§€ë¶ˆí•˜ë ¤ëŠ” ì„ëŒ€ë¹„ê°€ ë¶€ì¡±í•©ë‹ˆë‹¤ ! ì„ëŒ€ì‹ ì²­ ì‹¤íŒ¨ !" );
+						$this->alert ( $player, "ì„ëŒ€ ì‹ ì²­ìì˜ ëˆì´ ë¶€ì¡±í•´ì ¸ì„œ ì„ëŒ€ì‹ ì²­ì´ ì·¨ì†Œë˜ì—ˆìŠµë‹ˆë‹¤" );
 						unset ( $this->rent_Queue [$player->getName ()] );
 						return false;
 					}
@@ -963,63 +964,63 @@ class SimpleArea extends PluginBase implements Listener {
 					
 					$this->db [$player->getLevel ()->getFolderName ()]->addUserProperty ( $buyer->getName (), $id );
 					$this->db [$player->getLevel ()->getFolderName ()]->addResident ( $id, $buyer->getName () );
-					$this->message ( $player, "{$id}¹ø ¿µ¿ªÀ» Á¤»óÀûÀ¸·Î ÀÓ´ë Çß½À´Ï´Ù !" );
-					$this->message ( $buyer, "{$id}¹ø ¿µ¿ªÀ» Á¤»óÀûÀ¸·Î ÀÓ´ë ¹Ş¾Ò½À´Ï´Ù !" );
+					$this->message ( $player, "{$id}ë²ˆ ì˜ì—­ì„ ì •ìƒì ìœ¼ë¡œ ì„ëŒ€ í–ˆìŠµë‹ˆë‹¤ !" );
+					$this->message ( $buyer, "{$id}ë²ˆ ì˜ì—­ì„ ì •ìƒì ìœ¼ë¡œ ì„ëŒ€ ë°›ì•˜ìŠµë‹ˆë‹¤ !" );
 					
 					unset ( $this->rent_Queue [$player->getName ()] );
 					return true;
 				}
 				if ($area ["rent-allow"] == true) {
 					$this->db [$player->getLevel ()->getFolderName ()]->setRentAllow ( $area ["ID"], false );
-					$this->message ( $player, "ÀÌ Áı¿¡ ¿À´Â ÀÓ´ë¿äÃ»À» ¹ŞÁö ¾Ê°Ô Ã³¸®Çß½À´Ï´Ù !" );
-					$this->message ( $player, "( /rent ¸¦ ´Ù½ÃÇÑ¹ø ¾²¸é È°¼ºÈ­°¡´É ! )" );
+					$this->message ( $player, "ì´ ì§‘ì— ì˜¤ëŠ” ì„ëŒ€ìš”ì²­ì„ ë°›ì§€ ì•Šê²Œ ì²˜ë¦¬í–ˆìŠµë‹ˆë‹¤ !" );
+					$this->message ( $player, "( /rent ë¥¼ ë‹¤ì‹œí•œë²ˆ ì“°ë©´ í™œì„±í™”ê°€ëŠ¥ ! )" );
 				} else {
 					$this->db [$player->getLevel ()->getFolderName ()]->setRentAllow ( $area ["ID"], true );
-					$this->message ( $player, "ÀÌ Áı¿¡ ¿À´Â ÀÓ´ë¿äÃ»À» ¹Ş°Ô²û Ã³¸®Çß½À´Ï´Ù !" );
-					$this->message ( $player, "( /rent ¸¦ ´Ù½ÃÇÑ¹ø ¾²¸é ºñÈ°¼ºÈ­°¡´É ! )" );
+					$this->message ( $player, "ì´ ì§‘ì— ì˜¤ëŠ” ì„ëŒ€ìš”ì²­ì„ ë°›ê²Œë” ì²˜ë¦¬í–ˆìŠµë‹ˆë‹¤ !" );
+					$this->message ( $player, "( /rent ë¥¼ ë‹¤ì‹œí•œë²ˆ ì“°ë©´ ë¹„í™œì„±í™”ê°€ëŠ¥ ! )" );
 				}
 				return false;
 			}
 			foreach ( $area ["resident"] as $resident ) {
 				if ($resident == $player->getName ()) {
-					$this->alert ( $player, "ÀÌ¹Ì ÇØ´ç ¿µ¿ªÀ» °øÀ¯¹Ş°í ÀÖ½À´Ï´Ù ! ·»Æ®ºÒ°¡´É !" );
+					$this->alert ( $player, "ì´ë¯¸ í•´ë‹¹ ì˜ì—­ì„ ê³µìœ ë°›ê³  ìˆìŠµë‹ˆë‹¤ ! ë ŒíŠ¸ë¶ˆê°€ëŠ¥ !" );
 					return false;
 				}
 			}
 			if ($price == null) {
-				$this->message ( $player, "/rent <ÁöºÒÇÒ °¡°İ> - ÇÑ¹ø¸¸ ÁöºÒ" );
-				$this->message ( $player, "¿äÃ» ½Ã ÁıÁÖÀÎÀÌ ½Â³«/°ÅÀıÀ» ÇÏ°ÔµÇ¸ç" );
-				$this->message ( $player, "10ÃÊ¾È¿¡ ½Â³«ÇÒ ½Ã ±¸¸Å°¡ ¿Ï·á µË´Ï´Ù." );
+				$this->message ( $player, "/rent <ì§€ë¶ˆí•  ê°€ê²©> - í•œë²ˆë§Œ ì§€ë¶ˆ" );
+				$this->message ( $player, "ìš”ì²­ ì‹œ ì§‘ì£¼ì¸ì´ ìŠ¹ë‚™/ê±°ì ˆì„ í•˜ê²Œë˜ë©°" );
+				$this->message ( $player, "10ì´ˆì•ˆì— ìŠ¹ë‚™í•  ì‹œ êµ¬ë§¤ê°€ ì™„ë£Œ ë©ë‹ˆë‹¤." );
 				return false;
 			} else {
 				if (! is_numeric ( $price )) {
-					$this->alert ( $player, "ÀÓ´ëºñ´Â ¼ıÀÚ·Î¸¸ ÀÔ·Â °¡´ÉÇÕ´Ï´Ù !" );
+					$this->alert ( $player, "ì„ëŒ€ë¹„ëŠ” ìˆ«ìë¡œë§Œ ì…ë ¥ ê°€ëŠ¥í•©ë‹ˆë‹¤ !" );
 					return false;
 				} else {
 					if ($area ["rent-allow"] == false) {
-						$this->message ( $player, "ÀÌ ÁıÀÇ ¼ÒÀ¯ÀÚ°¡ ÇØ´ç ÁıÀÇ ÀÓ´ë¿äÃ»À» ¹ŞÁö¾Ê½À´Ï´Ù !" );
-						$this->message ( $player, $area ["resident"] [0] . "´Ô¿¡°Ô ÀÓ´ëÇã¿ëÀ» ¿äÃ»ÇØº¸¼¼¿ä !" );
+						$this->message ( $player, "ì´ ì§‘ì˜ ì†Œìœ ìê°€ í•´ë‹¹ ì§‘ì˜ ì„ëŒ€ìš”ì²­ì„ ë°›ì§€ì•ŠìŠµë‹ˆë‹¤ !" );
+						$this->message ( $player, $area ["resident"] [0] . "ë‹˜ì—ê²Œ ì„ëŒ€í—ˆìš©ì„ ìš”ì²­í•´ë³´ì„¸ìš” !" );
 						return false;
 					}
 					$money = $this->economyAPI->myMoney ( $player );
 					if ($money < $price) {
-						$this->alert ( $player, "ÁöºÒÇÏ·Á´Â ÀÓ´ëºñ°¡ ºÎÁ·ÇÕ´Ï´Ù ! ÀÓ´ë½ÅÃ» ½ÇÆĞ !" );
+						$this->alert ( $player, "ì§€ë¶ˆí•˜ë ¤ëŠ” ì„ëŒ€ë¹„ê°€ ë¶€ì¡±í•©ë‹ˆë‹¤ ! ì„ëŒ€ì‹ ì²­ ì‹¤íŒ¨ !" );
 						return false;
 					}
 					$owner = $this->getServer ()->getPlayerExact ( $area ["resident"] [0] );
 					if ($owner == null) {
-						$this->message ( $player, "ÁıÁÖÀÎÀÌ ¿ÀÇÁ¶óÀÎ »óÅÂÀÔ´Ï´Ù ! ±¸¸ÅºÒ°¡´É !" );
-						$this->message ( $player, $area ["resident"] [0] . "´ÔÀÌ ·Î±×ÀÎ ÇÏ¸é ´Ù½Ã½ÃµµÇØº¸¼¼¿ä !" );
+						$this->message ( $player, "ì§‘ì£¼ì¸ì´ ì˜¤í”„ë¼ì¸ ìƒíƒœì…ë‹ˆë‹¤ ! êµ¬ë§¤ë¶ˆê°€ëŠ¥ !" );
+						$this->message ( $player, $area ["resident"] [0] . "ë‹˜ì´ ë¡œê·¸ì¸ í•˜ë©´ ë‹¤ì‹œì‹œë„í•´ë³´ì„¸ìš” !" );
 						return false;
 					}
 					if (isset ( $this->rent_Queue [$owner->getName ()] )) {
-						$this->alert ( $player, "ÀÌ¹Ì ÁıÁÖÀÎÀÌ ´Ù¸¥ ÀÓ´ë½ÅÃ»À» ¹Ş°í ÀÖ½À´Ï´Ù !" );
-						$this->alert ( $player, "10ÃÊ ÈÄ¿¡ ´Ù½Ã ÀÓ´ë½ÅÃ» ½Ãµµ ÇØÁÖ¼¼¿ä!" );
+						$this->alert ( $player, "ì´ë¯¸ ì§‘ì£¼ì¸ì´ ë‹¤ë¥¸ ì„ëŒ€ì‹ ì²­ì„ ë°›ê³  ìˆìŠµë‹ˆë‹¤ !" );
+						$this->alert ( $player, "10ì´ˆ í›„ì— ë‹¤ì‹œ ì„ëŒ€ì‹ ì²­ ì‹œë„ í•´ì£¼ì„¸ìš”!" );
 						return false;
 					}
-					$this->message ( $owner, $player->getName () . "´ÔÀÌ " . $area ["ID"] . "¹ø ¶¥À» ÀÓ´ë¹Ş±æ ¿øÇÕ´Ï´Ù !" );
-					$this->message ( $owner, "ÀÓ´ëºñ·Î " . $price . "$ ¸¦ ÁöºÒ ¿¹Á¤ÀÌ¸ç, Çã¿ë½Ã Áö±ŞµË´Ï´Ù !" );
-					$this->message ( $owner, "( 10ÃÊ ¾ÈÀ¸·Î /rent ¸í·É¾î¸¦ ¾²½Ã¸é Çã¿ëÃ³¸®µË´Ï´Ù. )" );
+					$this->message ( $owner, $player->getName () . "ë‹˜ì´ " . $area ["ID"] . "ë²ˆ ë•…ì„ ì„ëŒ€ë°›ê¸¸ ì›í•©ë‹ˆë‹¤ !" );
+					$this->message ( $owner, "ì„ëŒ€ë¹„ë¡œ " . $price . "$ ë¥¼ ì§€ë¶ˆ ì˜ˆì •ì´ë©°, í—ˆìš©ì‹œ ì§€ê¸‰ë©ë‹ˆë‹¤ !" );
+					$this->message ( $owner, "( 10ì´ˆ ì•ˆìœ¼ë¡œ /rent ëª…ë ¹ì–´ë¥¼ ì“°ì‹œë©´ í—ˆìš©ì²˜ë¦¬ë©ë‹ˆë‹¤. )" );
 					$this->rent_Queue [$owner->getName ()] ["ID"] = $area ["ID"];
 					$this->rent_Queue [$owner->getName ()] ["buyer"] = $player;
 					$this->rent_Queue [$owner->getName ()] ["price"] = $price;
@@ -1028,49 +1029,49 @@ class SimpleArea extends PluginBase implements Listener {
 							"rentTimeout" ], [ 
 							$owner,
 							$player ] ), 200 );
-					$this->message ( $player, "ÁıÁÖÀÎ¿¡°Ô ÇØ´ç ¿äÃ»À» º¸³Â½À´Ï´Ù !" );
+					$this->message ( $player, "ì§‘ì£¼ì¸ì—ê²Œ í•´ë‹¹ ìš”ì²­ì„ ë³´ëƒˆìŠµë‹ˆë‹¤ !" );
 					return true;
 				}
 			}
 		} else {
-			$this->alert ( $player, "ÀÌÄÚ³ë¹Ì°¡ ºñÈ°¼ºÈ­ µÇ¾îÀÖ½À´Ï´Ù ( »ç¿ëºÒ°¡ )" );
+			$this->alert ( $player, "ì´ì½”ë…¸ë¯¸ê°€ ë¹„í™œì„±í™” ë˜ì–´ìˆìŠµë‹ˆë‹¤ ( ì‚¬ìš©ë¶ˆê°€ )" );
 		}
 	}
 	public function rentTimeout(Player $owner, CommandSender $buyer) {
 		if (isset ( $this->rent_Queue [$owner->getName ()] )) {
-			$this->alert ( $this->rent_Queue [$owner->getName ()] ["buyer"], "ÀâÁÖÀÎÀÌ ÆÇ¸Å¸¦ ¿øÇÏÁö¾Ê½À´Ï´Ù ! ( 10ÃÊ Å¸ÀÓ¾Æ¿ô )" );
-			$this->alert ( $owner, "ÀÓ´ë¿äÃ»À» ÀÚµ¿À¸·Î °ÅÀıÇß½À´Ï´Ù ! (10ÃÊ Å¸ÀÓ¾Æ¿ô)" );
+			$this->alert ( $this->rent_Queue [$owner->getName ()] ["buyer"], "ì¡ì£¼ì¸ì´ íŒë§¤ë¥¼ ì›í•˜ì§€ì•ŠìŠµë‹ˆë‹¤ ! ( 10ì´ˆ íƒ€ì„ì•„ì›ƒ )" );
+			$this->alert ( $owner, "ì„ëŒ€ìš”ì²­ì„ ìë™ìœ¼ë¡œ ê±°ì ˆí–ˆìŠµë‹ˆë‹¤ ! (10ì´ˆ íƒ€ì„ì•„ì›ƒ)" );
 			unset ( $this->rent_Queue [$owner->getName ()] );
 		}
 	}
 	public function deleteHome(Player $player) {
 		if (isset ( $this->delete_Queue [$player->getName ()] )) {
 			$this->db [$player->getLevel ()->getFolderName ()]->removeAreaById ( $this->delete_Queue [$player->getName ()] ["ID"] );
-			$this->message ( $player, "¿µ¿ª »èÁ¦¸¦ ¿Ï·áÇß½À´Ï´Ù!" );
+			$this->message ( $player, "ì˜ì—­ ì‚­ì œë¥¼ ì™„ë£Œí–ˆìŠµë‹ˆë‹¤!" );
 			unset ( $this->delete_Queue [$player->getName ()] );
 			return true;
 		}
 		$area = $this->db [$player->getLevel ()->getFolderName ()]->getArea ( $player->x, $player->z );
 		if ($area == false) {
-			$this->alert ( $player, "¿µ¿ªÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." );
+			$this->alert ( $player, "ì˜ì—­ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." );
 			return false;
 		}
 		if ($area ["resident"] [0] != $player->getName ()) {
 			if (! $player->isOp ()) {
-				$this->alert ( $player, "¿µ¿ª ¼ÒÀ¯ÁÖ°¡ ¾Æ´Õ´Ï´Ù, »èÁ¦ºÒ°¡´É." );
+				$this->alert ( $player, "ì˜ì—­ ì†Œìœ ì£¼ê°€ ì•„ë‹™ë‹ˆë‹¤, ì‚­ì œë¶ˆê°€ëŠ¥." );
 				return false;
 			} else {
 				$this->delete_Queue [$player->getName ()] = $area;
-				if ($area ["resident"] [0] != null) $this->message ( $player, $area ["resident"] [0] . "´Ô ¿µ¿ªÀ» »èÁ¦ÇÏ½Ã°Ú½À´Ï±î?." );
-				if ($area ["resident"] [0] == null) $this->message ( $player, "¼ÒÀ¯ÁÖ°¡ ¾ø´Â ¿µ¿ªÀ» »èÁ¦ÇÏ½Ã°Ú½À´Ï±î?." );
-				$this->message ( $player, "¸ÂÀ»°æ¿ì ´Ù½ÃÇÑ¹ø ¸í·É¾î¸¦," );
-				$this->message ( $player, "¾Æ´Ò °æ¿ì /sa cancelÀ» ½áÁÖ¼¼¿ä." );
+				if ($area ["resident"] [0] != null) $this->message ( $player, $area ["resident"] [0] . "ë‹˜ ì˜ì—­ì„ ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?." );
+				if ($area ["resident"] [0] == null) $this->message ( $player, "ì†Œìœ ì£¼ê°€ ì—†ëŠ” ì˜ì—­ì„ ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?." );
+				$this->message ( $player, "ë§ì„ê²½ìš° ë‹¤ì‹œí•œë²ˆ ëª…ë ¹ì–´ë¥¼," );
+				$this->message ( $player, "ì•„ë‹ ê²½ìš° /sa cancelì„ ì¨ì£¼ì„¸ìš”." );
 			}
 		} else {
 			$this->delete_Queue [$player->getName ()] = $area;
-			$this->message ( $player, "º»ÀÎ ¿µ¿ªÀ» »èÁ¦ÇÏ½Ã°Ú½À´Ï±î ?" );
-			$this->message ( $player, "¸ÂÀ»°æ¿ì ´Ù½ÃÇÑ¹ø ¸í·É¾î¸¦," );
-			$this->message ( $player, "¾Æ´Ò °æ¿ì /sa cancelÀ» ½áÁÖ¼¼¿ä." );
+			$this->message ( $player, "ë³¸ì¸ ì˜ì—­ì„ ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ ?" );
+			$this->message ( $player, "ë§ì„ê²½ìš° ë‹¤ì‹œí•œë²ˆ ëª…ë ¹ì–´ë¥¼," );
+			$this->message ( $player, "ì•„ë‹ ê²½ìš° /sa cancelì„ ì¨ì£¼ì„¸ìš”." );
 		}
 		return true;
 	}
@@ -1084,8 +1085,8 @@ class SimpleArea extends PluginBase implements Listener {
 		if ($this->checkEconomyAPI ()) {
 			$money = $this->economyAPI->myMoney ( $player );
 			if ($money < 5000) {
-				$this->message ( $player, "ÁıÀ» ±¸¸ÅÇÏ´Âµ¥ ½ÇÆĞÇß½À´Ï´Ù !" );
-				$this->message ( $player, "( Áı ±¸¸Å°¡°İ " . ($this->config_Data ["economy-home-price"] - $money) . "$ °¡ ´õ ÇÊ¿äÇÕ´Ï´Ù !" );
+				$this->message ( $player, "ì§‘ì„ êµ¬ë§¤í•˜ëŠ”ë° ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤ !" );
+				$this->message ( $player, "( ì§‘ êµ¬ë§¤ê°€ê²© " . ($this->config_Data ["economy-home-price"] - $money) . "$ ê°€ ë” í•„ìš”í•©ë‹ˆë‹¤ !" );
 				return false;
 			}
 		}
@@ -1093,14 +1094,14 @@ class SimpleArea extends PluginBase implements Listener {
 		$area_id = $this->db [$player->level->getFolderName ()]->addArea ( $player->getName (), $startX, $endX, $startZ, $endZ, true );
 		
 		if ($area_id == false) {
-			$this->message ( $player, "´Ù¸¥ À¯ÀúÀÇ ¿µ¿ª°ú °ãÄ¨´Ï´Ù, ¼³Á¤ºÒ°¡ !" );
+			$this->message ( $player, "ë‹¤ë¥¸ ìœ ì €ì˜ ì˜ì—­ê³¼ ê²¹ì¹©ë‹ˆë‹¤, ì„¤ì •ë¶ˆê°€ !" );
 		} else {
 			foreach ( $this->config_Data ["default-protect-blocks"] as $protect_block )
 				$this->db [$player->level->getFolderName ()]->addOption ( $area_id, $protect_block );
-			$this->message ( $player, "¼º°øÀûÀ¸·Î ÁıÀ» ±¸¸ÅÇß½À´Ï´Ù !" );
+			$this->message ( $player, "ì„±ê³µì ìœ¼ë¡œ ì§‘ì„ êµ¬ë§¤í–ˆìŠµë‹ˆë‹¤ !" );
 			if ($this->checkEconomyAPI ()) {
 				$this->economyAPI->reduceMoney ( $player, $this->config_Data ["economy-home-price"] );
-				$this->message ( $player, "Áı ±¸¸Å°¡°İ " . $this->config_Data ["economy-home-price"] . "$ °¡ ÁöºÒ µÇ¾ú½À´Ï´Ù !" );
+				$this->message ( $player, "ì§‘ êµ¬ë§¤ê°€ê²© " . $this->config_Data ["economy-home-price"] . "$ ê°€ ì§€ë¶ˆ ë˜ì—ˆìŠµë‹ˆë‹¤ !" );
 			}
 		}
 	}
@@ -1114,11 +1115,11 @@ class SimpleArea extends PluginBase implements Listener {
 		$area_id = $this->db [$player->level->getFolderName ()]->addArea ( null, $startX, $endX, $startZ, $endZ, true );
 		
 		if ($area_id == false) {
-			$this->message ( $player, "´Ù¸¥ À¯ÀúÀÇ ¿µ¿ª°ú °ãÄ¨´Ï´Ù, ¼³Á¤ºÒ°¡ !" );
+			$this->message ( $player, "ë‹¤ë¥¸ ìœ ì €ì˜ ì˜ì—­ê³¼ ê²¹ì¹©ë‹ˆë‹¤, ì„¤ì •ë¶ˆê°€ !" );
 		} else {
 			foreach ( $this->config_Data ["default-protect-blocks"] as $protect_block )
 				$this->db [$player->level->getFolderName ()]->addOption ( $area_id, $protect_block );
-			$this->message ( $player, "¼º°øÀûÀ¸·Î ÁıÀ» »ı¼ºÇß½À´Ï´Ù !" );
+			$this->message ( $player, "ì„±ê³µì ìœ¼ë¡œ ì§‘ì„ ìƒì„±í–ˆìŠµë‹ˆë‹¤ !" );
 		}
 	}
 	public function getHomeSize() {
