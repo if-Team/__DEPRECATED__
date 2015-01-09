@@ -1,6 +1,6 @@
 name: HungerGames
 main: HungerGames\HungerGames
-version: "0.9"
+version: "1.0"
 author: hmm
 api: [1.4.1]
 

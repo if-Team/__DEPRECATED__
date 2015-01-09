@@ -7,16 +7,16 @@ use pocketmine\item\Item;
 use pocketmine\utils\TextFormat;
 
 class HungerGameSession {
-	public $isTouched = [ ];
-	public $invincible = 0;
-	public function touchCheck(Player $player, $x, $y, $z, $check) {
-		if (isset ( $this->isTouched [$x . ":" . $y . ":" . $z] )) {
+	public $sakura = [ ];
+	public $ATField = 0;
+	public $firstpos = 0;
+	public function TouchCheck(Player $player, $x, $y, $z, $check) {
+		if (isset ( $this->sakura [$x . ":" . $y . ":" . $z] )) {
 			if ($check == 1) $player->sendMessage ( TextFormat::RED . "이미 아이템을 얻은 상자입니다 !" );
 			if ($check == 2) $player->sendMessage ( TextFormat::RED . "이미 체력을 얻은 블럭입니다 !" );
-			if ($check == 3) $player->sendMessage ( TextFormat::RED . "이미 다른사람이 가져갔습니다" );
 		} else {
 			// 아이템랜덤증정
-			$this->isTouched [$x . ":" . $y . ":" . $z] = 1;
+			$this->sakura [$x . ":" . $y . ":" . $z] = 1;
 			$category = rand ( 1, 4 );
 			if ($check == 1) {
 				$player->sendMessage ( TextFormat::DARK_AQUA . "아이템을 얻었습니다 !" );

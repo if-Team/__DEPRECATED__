@@ -2,6 +2,11 @@
 
 namespace HungerGames;
 
+use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\event\player\PlayerDeathEvent;
+use pocketmine\event\player\PlayerJoinEvent;
+use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\utils\TextFormat;
 use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
@@ -13,21 +18,19 @@ use pocketmine\block\Block;
 use pocketmine\item\Item;
 use pocketmine\scheduler\CallbackTask;
 use pocketmine\network\protocol\AddEntityPacket;
+use pocketmine\event\entity\EntityShootBowEvent;
 use pocketmine\utils\Config;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\command\CommandSender;
 use pocketmine\command\Command;
 use pocketmine\network\protocol\ExplodePacket;
-use pocketmine\event\player\PlayerJoinEvent;
-use pocketmine\event\player\PlayerInteractEvent;
-use pocketmine\event\entity\EntityShootBowEvent;
-use pocketmine\event\entity\EntityDamageByEntityEvent;
-use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\entity\EntityDeathEvent;
 use pocketmine\event\entity\EntitySpawnEvent;
 use pocketmine\event\entity\EntityRegainHealthEvent;
 use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\level\Position;
+use pocketmine\entity\Villager;
+use pocketmine\event\player\PlayerLoginEvent;
+use pocketmine\event\block\BlockBreakEvent;
 
 class HungerGames extends PluginBase implements Listener {
 	public $config, $config_data;
@@ -42,7 +45,7 @@ class HungerGames extends PluginBase implements Listener {
 		$this->getLogger ()->info ( "HungerGames Loaded" );
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
 				$this,
-				"AllKillEntity" ] ), 20 * 100 );
+				"AllKillEntity" ] ), 20 * 25 );
 	}
 	public function onDisable() {
 		$this->config->setAll ( $this->config_data );
@@ -94,22 +97,31 @@ class HungerGames extends PluginBase implements Listener {
 			$pos = new Position ( $e [0], $e [1], $e [2], $entity->getLevel () );
 			$event->setRespawnPosition ( $pos );
 		}
-		$entity->sendMessage ( TextFormat::RED . "[주의] 리스폰 보호는 10초간 지속됩니다 !" );
+		$entity->sendMessage ( TextFormat::RED . "[주의] 리스폰 보호는 15초간 지속됩니다 !" );
 		if (isset ( $this->users [$entity->getName ()] )) {
-			$this->users [$entity->getName ()]->invincible = 1;
+			$this->users [$entity->getName ()]->ATField = 1;
 			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
 					$this,
-					"Uninvincible" ], [ 
-					$event->getPlayer () ] ), 20 * 10 );
+					"UnATField" ], [ 
+					$event->getPlayer () ] ), 20 * 15 );
 		}
+	}
+	public function BlockBreak(BlockBreakEvent $event) {
+		if ($event->getBlock ()->getId () == Item::NETHER_REACTOR) if (! $event->getPlayer ()->isOp ()) $event->setCancelled ();
 	}
 	public function onAttack(EntityDamageEvent $event) {
 		if ($event instanceof EntityDamageByEntityEvent) {
 			$victim = $event->getEntity ();
 			$murder = $event->getDamager ();
-			
-			if ($victim instanceof Player && $this->users [$victim->getName ()]->invincible == 1) return;
-			if ($victim instanceof Player && $murder instanceof Player) {
+			// $this->users[$event->getPlayer()->getName()]["firstpos"]
+			if ($victim instanceof Player) {
+				if ($this->users [$victim->getName ()]->ATField == 1) return;
+				if (isset ( $this->users [$victim->getName ()]->firstpos )) {
+					$fpos = $this->users [$victim->getName ()]->firstpos;
+					if ($fpos->x == $victim->x and $fpos->y == $victim->y and $fpos->z == $victim->z) return;
+				}
+			}
+			if ($murder instanceof Player) {
 				if (isset ( $this->deathcool [$murder->getName ()] )) {
 					if (time () - $this->deathcool [$murder->getName ()] <= 0.1) return;
 					$item = $murder->getInventory ()->getItemInHand ()->getID ();
@@ -121,8 +133,9 @@ class HungerGames extends PluginBase implements Listener {
 					} else {
 						$totalDamaged = 2;
 					}
-					$totalDamaged -= $this->ArmorDamageCalc ( $victim );
-					
+					if ($victim instanceof Player) {
+						$totalDamaged -= $this->ArmorDamageCalc ( $victim );
+					}
 					if ($totalDamaged > 0) $victim->attack ( $totalDamaged, EntityDamageEvent::CAUSE_ENTITY_ATTACK );
 					if (isset ( $this->attackcool [$murder->getName ()] )) if (time () - $this->attackcool [$murder->getName ()] <= 1) return;
 					if ($victim->getHealth () - $event->getFinalDamage () <= 0) {
@@ -136,28 +149,32 @@ class HungerGames extends PluginBase implements Listener {
 	}
 	public function checkArrow(EntityShootBowEvent $event) {
 		$arrow = $event->getProjectile ();
+		$murder = $event->getEntity ();
+		
 		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
 				$this,
 				"removeArrow" ], [ 
 				$event ] ), 20 );
 	}
-	public function onJoin(PlayerJoinEvent $event) {
+	public function checkLogin(PlayerLoginEvent $event) {
+		$player = $event->getPlayer ();
 		if (! isset ( $this->users [$event->getPlayer ()->getName ()] )) {
 			$this->users [$event->getPlayer ()->getName ()] = new HungerGameSession ();
+			$this->users [$event->getPlayer ()->getName ()]->firstpos = new Vector3 ( $player->x, $player->y, $player->z );
 		}
+	}
+	public function onJoin(PlayerJoinEvent $event) {
+		$player = $event->getPlayer ();
 		if (! isset ( $this->config_data [$event->getPlayer ()->getName ()] )) {
 			$this->config_data [$event->getPlayer ()->getName ()] ["kill"] = 0;
 			$this->config_data [$event->getPlayer ()->getName ()] ["death"] = 0;
 		}
-		if (! isset ( $this->config_data [$event->getPlayer ()->getName ()] ["point"] )) {
-			$this->config_data [$event->getPlayer ()->getName ()] ["point"] = 10;
-		}
 	}
-	public function onDeath(EntityDeathEvent $event) {
+	public function onDeath(PlayerDeathEvent $event) {
 		$event->setDrops ( [ ] );
 		$entity = $event->getEntity ();
 		if (isset ( $this->users [$entity->getName ()] )) {
-			$this->users [$entity->getName ()]->isTouched = [ ];
+			$this->users [$entity->getName ()]->sakura = [ ];
 		}
 	}
 	public function onTouch(PlayerInteractEvent $event) {
@@ -165,13 +182,8 @@ class HungerGames extends PluginBase implements Listener {
 		$player = $event->getPlayer ();
 		$item = $event->getItem ()->getID ();
 		
-		if ($block->getID () == Item::CHEST and isset ( $this->users [$event->getPlayer ()->getName ()] )) {
-			$this->users [$event->getPlayer ()->getName ()]->touchCheck ( $player, $block->getX (), $block->getY (), $block->getZ (), 1 );
-			$event->setCancelled ();
-			return;
-		}
-		if ($block->getID () == Item::MELON_BLOCK or $block->getID () == Item::SEEDS) {
-			$this->users [$event->getPlayer ()->getName ()]->touchCheck ( $player, $block->getX (), $block->getY (), $block->getZ (), 2 );
+		if ($block->getID () == Item::NETHER_REACTOR and isset ( $this->users [$event->getPlayer ()->getName ()] )) {
+			$this->users [$event->getPlayer ()->getName ()]->TouchCheck ( $player, $block->getX (), $block->getY (), $block->getZ (), 1 );
 			$event->setCancelled ();
 			return;
 		}
@@ -186,74 +198,103 @@ class HungerGames extends PluginBase implements Listener {
 			}
 		}
 	}
-	public function Uninvincible(Player $player) {
-		$this->users [$player->getName ()]->invincible = 0;
+	public function UnATField(Player $player) {
+		$this->users [$player->getName ()]->ATField = 0;
 		$player->sendMessage ( TextFormat::RED . "[주의] 리스폰 보호가 해제되었습니다 !" );
 	}
 	public function KillUpdate($murder, $victim) {
-		$this->config_data [$murder->getName ()] ["kill"] ++;
-		$this->config_data [$victim->getName ()] ["death"] ++;
-		$mi = "(K" . $this->config_data [$murder->getName ()] ["kill"] . "/D" . $this->config_data [$murder->getName ()] ["death"] . ")";
-		$vi = "(K" . $this->config_data [$victim->getName ()] ["kill"] . "/D" . $this->config_data [$victim->getName ()] ["death"] . ")";
-		// $this->getServer ()->broadcastMessage ( TextFormat::RED . $murder->getName () . $mi . "´님이" . $victim->getName () . $vi . "님을 살해 !" );
-		foreach ( $this->getServer ()->getOnlinePlayers () as $player ) {
-			if ($player == $murder) {
-				if (! isset ( $this->config_data [$player->getName ()] ["point"] )) return;
-				$this->config_data [$player->getName ()] ["point"] += 10;
-				$player->sendMessage ( TextFormat::RED . $victim->getName () . $vi . "님을 살해 하셨습니다 ! " . "+10 킬포인트획득 !" );
-				return;
-			}
-			$player->sendMessage ( TextFormat::RED . $murder->getName () . $mi . "´님이" . $victim->getName () . $vi . "님을 살해 !" );
+		if ($victim instanceof Player and $murder instanceof Player) {
+			$this->config_data [$murder->getName ()] ["kill"] ++;
+			$this->config_data [$victim->getName ()] ["death"] ++;
+			$mi = "(K" . $this->config_data [$murder->getName ()] ["kill"] . "/D" . $this->config_data [$murder->getName ()] ["death"] . ")";
+			$vi = "(K" . $this->config_data [$victim->getName ()] ["kill"] . "/D" . $this->config_data [$victim->getName ()] ["death"] . ")";
+			$this->getServer ()->broadcastMessage ( TextFormat::RED . $murder->getName () . $mi . "´님이" . $victim->getName () . $vi . "님을 살해 !" );
+		}
+		if ($victim instanceof Villager and $murder instanceof Player) {
+			$this->config_data [$murder->getName ()] ["kill"] ++;
+			$mi = "(K" . $this->config_data [$murder->getName ()] ["kill"] . "/D" . $this->config_data [$murder->getName ()] ["death"] . ")";
+			$this->getServer ()->broadcastMessage ( TextFormat::RED . $murder->getName () . $mi . "´님이 주민을 살해 !" );
 		}
 	}
 	public function ArmorDamageCalc(Player $player) {
-		foreach ( $player->getInventory ()->getArmorContents () as $ar ) {
-			$arlist = array (
-					Item::LEATHER_CAP,
-					Item::CHAIN_HELMET,
-					Item::IRON_HELMET,
-					Item::DIAMOND_HELMET,
-					Item::GOLD_HELMET );
-			foreach ( $arlist as $arl ) {
-				if ($ar == new Item ( $arl, 0, 1 )) {
-					if ($arl == Item::LEATHER_CAP) $nocount = 0.5;
-					if ($arl == Item::CHAIN_HELMET) $nocount = 0.5;
-					if ($arl == Item::IRON_HELMET) $nocount = 0.8;
-					if ($arl == Item::DIAMOND_HELMET) $nocount = 1.2;
-					if ($arl == Item::GOLD_HELMET) $nocount = 1.5;
+		if ($player instanceof Player and $player->spawned === true) {
+			if ($player->getInventory () == NULL) return 0;
+			if ($player->getInventory ()->getArmorContents () == NULL) return 0;
+			foreach ( $player->getInventory ()->getArmorContents () as $ar ) {
+				$arlist = array (
+						Item::LEATHER_CAP,
+						Item::CHAIN_HELMET,
+						Item::IRON_HELMET,
+						Item::DIAMOND_HELMET,
+						Item::GOLD_HELMET );
+				foreach ( $arlist as $arl ) {
+					if ($ar == new Item ( $arl, 0, 1 )) {
+						if ($arl == Item::LEATHER_CAP) $nocount = 2;
+						if ($arl == Item::CHAIN_HELMET) $nocount = 2;
+						if ($arl == Item::IRON_HELMET) $nocount = 2;
+						if ($arl == Item::DIAMOND_HELMET) $nocount = 3;
+						if ($arl == Item::GOLD_HELMET) $nocount = 3;
+					}
 				}
 			}
+			if (isset ( $nocunt )) {
+				return $nocunt;
+			} else {
+				return 0;
+			}
 		}
-		if (isset ( $nocunt )) return $nocunt;
 	}
 	public function AllKillEntity() {
 		$entities = $this->getServer ()->getDefaultLevel ()->getEntities ();
 		foreach ( $entities as $ent ) {
 			if (! $ent instanceof Player) {
-				$ent->kill ();
+				if (! $ent instanceof Villager) {
+					$ent->kill ();
+				}
 			}
 		}
 	}
 	public function ShockWave($x, $y, $z, $radius, $damage, $murder) {
+		$dcount = $damage;
 		$exp = new ExplodePacket ();
 		$exp->x = $x;
 		$exp->y = $y;
 		$exp->z = $z;
 		$exp->radius = 32;
 		// Server::broadcastPacket ( $murder->getLevel ()->getPlayers (), $exp );
-		foreach ( $this->getServer ()->getOnlinePlayers () as $victim ) {
-			$cx = abs ( $x - $victim->x );
-			$cz = abs ( $z - $victim->z );
-			$damage -= $this->ArmorDamageCalc ( $victim );
-			if (isset ( $this->users [$victim->getName ()] )) {
-				if ($this->users [$victim->getName ()]->invincible == 0) if ($cx <= 20 and $cz <= 20) {
-					$victim->directDataPacket ( $exp );
-				}
-				if ($cx <= $radius and $cz <= $radius) {
-					if ($victim->getHealth () - $damage <= 0 and $victim->spawned == true and $victim->dead == false) {
-						$this->KillUpdate ( $murder, $victim );
+		$entities = $this->getServer ()->getDefaultLevel ()->getEntities ();
+		foreach ( $entities as $victim ) {
+			if ($victim instanceof Player or $victim instanceof Villager) {
+				$cx = abs ( $x - $victim->x );
+				$cy = abs ( $y - $victim->y );
+				$cz = abs ( $z - $victim->z );
+				if ($victim instanceof Player) {
+					$dcount -= $this->ArmorDamageCalc ( $victim );
+					if (isset ( $this->users [$victim->getName ()]->firstpos )) {
+						$fpos = $this->users [$victim->getName ()]->firstpos;
+						if ($fpos->x == $victim->x and $fpos->y == $victim->y and $fpos->z == $victim->z) return;
 					}
-					$victim->attack ( $damage, EntityDamageEvent::CAUSE_ENTITY_ATTACK );
+				}
+				if (isset ( $this->users [$victim->getName ()] )) {
+					if ($this->users [$victim->getName ()]->ATField == 0) {
+						if ($cx <= 20 and $cz <= 20) {
+							$victim->directDataPacket ( $exp );
+						}
+						if ($cx <= $radius and $cy <= $radius and $cz <= $radius) {
+							if ($victim->getHealth () - $dcount <= 0 and $victim->spawned == true and $victim->dead == false) {
+								$this->KillUpdate ( $murder, $victim );
+							}
+							$victim->attack ( $dcount, EntityDamageEvent::CAUSE_ENTITY_ATTACK );
+						}
+					}
+				}
+				if ($victim instanceof Villager) {
+					if ($cx <= $radius and $cz <= $radius) {
+						if ($victim->getHealth () - $dcount <= 0 and $victim->dead == false) {
+							$this->KillUpdate ( $murder, $victim );
+						}
+						$victim->attack ( $dcount, EntityDamageEvent::CAUSE_ENTITY_ATTACK );
+					}
 				}
 			}
 		}
