@@ -42,8 +42,7 @@ class HungerGames extends PluginBase implements Listener {
 		$this->getLogger ()->info ( "HungerGames Loaded" );
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
 				$this,
-				"AllKillEntity" 
-		] ), 20 * 100 );
+				"AllKillEntity" ] ), 20 * 100 );
 	}
 	public function onDisable() {
 		$this->config->setAll ( $this->config_data );
@@ -54,8 +53,7 @@ class HungerGames extends PluginBase implements Listener {
 			if (! ($sender instanceof Player)) {
 				$sender->sendMessage ( TextFormat::RED . "명령어는 인게임에서만 사용가능합니다" );
 			}
-			if (! isset ( $args [0] ))
-				return false;
+			if (! isset ( $args [0] )) return false;
 			switch ($args [0]) {
 				case 'spawn' :
 					if (isset ( $args [1] )) {
@@ -101,10 +99,8 @@ class HungerGames extends PluginBase implements Listener {
 			$this->users [$entity->getName ()]->invincible = 1;
 			$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
 					$this,
-					"Uninvincible" 
-			], [ 
-					$event->getPlayer () 
-			] ), 20 * 10 );
+					"Uninvincible" ], [ 
+					$event->getPlayer () ] ), 20 * 10 );
 		}
 	}
 	public function onAttack(EntityDamageEvent $event) {
@@ -112,12 +108,10 @@ class HungerGames extends PluginBase implements Listener {
 			$victim = $event->getEntity ();
 			$murder = $event->getDamager ();
 			
-			if ($victim instanceof Player && $this->users [$victim->getName ()]->invincible == 1)
-				return;
+			if ($victim instanceof Player && $this->users [$victim->getName ()]->invincible == 1) return;
 			if ($victim instanceof Player && $murder instanceof Player) {
 				if (isset ( $this->deathcool [$murder->getName ()] )) {
-					if (time () - $this->deathcool [$murder->getName ()] <= 0.1)
-						return;
+					if (time () - $this->deathcool [$murder->getName ()] <= 0.1) return;
 					$item = $murder->getInventory ()->getItemInHand ()->getID ();
 					$totalDamaged = 0;
 					if ($item == Item::IRON_SWORD or $item == Item::WOODEN_SWORD or $item == Item::STONE_SWORD or $item == Item::DIAMOND_SWORD or $item == Item::GOLD_SWORD) {
@@ -129,11 +123,8 @@ class HungerGames extends PluginBase implements Listener {
 					}
 					$totalDamaged -= $this->ArmorDamageCalc ( $victim );
 					
-					if ($totalDamaged > 0)
-						$victim->attack ( $totalDamaged, EntityDamageEvent::CAUSE_ENTITY_ATTACK );
-					if (isset ( $this->attackcool [$murder->getName ()] ))
-						if (time () - $this->attackcool [$murder->getName ()] <= 1)
-							return;
+					if ($totalDamaged > 0) $victim->attack ( $totalDamaged, EntityDamageEvent::CAUSE_ENTITY_ATTACK );
+					if (isset ( $this->attackcool [$murder->getName ()] )) if (time () - $this->attackcool [$murder->getName ()] <= 1) return;
 					if ($victim->getHealth () - $event->getFinalDamage () <= 0) {
 						$this->KillUpdate ( $murder, $victim );
 						$this->attackcool [$murder->getName ()] = time ();
@@ -147,10 +138,8 @@ class HungerGames extends PluginBase implements Listener {
 		$arrow = $event->getProjectile ();
 		$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
 				$this,
-				"removeArrow" 
-		], [ 
-				$event 
-		] ), 20 );
+				"removeArrow" ], [ 
+				$event ] ), 20 );
 	}
 	public function onJoin(PlayerJoinEvent $event) {
 		if (! isset ( $this->users [$event->getPlayer ()->getName ()] )) {
@@ -192,10 +181,8 @@ class HungerGames extends PluginBase implements Listener {
 				$block->getLevel ()->setBlock ( $block, Block::get ( Item::FIRE, 0 ) );
 				$this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
 						$this,
-						"removeBlock" 
-				], [ 
-						$block 
-				] ), 100 );
+						"removeBlock" ], [ 
+						$block ] ), 100 );
 			}
 		}
 	}
@@ -211,8 +198,7 @@ class HungerGames extends PluginBase implements Listener {
 		// $this->getServer ()->broadcastMessage ( TextFormat::RED . $murder->getName () . $mi . "´님이" . $victim->getName () . $vi . "님을 살해 !" );
 		foreach ( $this->getServer ()->getOnlinePlayers () as $player ) {
 			if ($player == $murder) {
-				if (! isset ( $this->config_data [$player->getName ()] ["point"] ))
-					return;
+				if (! isset ( $this->config_data [$player->getName ()] ["point"] )) return;
 				$this->config_data [$player->getName ()] ["point"] += 10;
 				$player->sendMessage ( TextFormat::RED . $victim->getName () . $vi . "님을 살해 하셨습니다 ! " . "+10 킬포인트획득 !" );
 				return;
@@ -227,25 +213,18 @@ class HungerGames extends PluginBase implements Listener {
 					Item::CHAIN_HELMET,
 					Item::IRON_HELMET,
 					Item::DIAMOND_HELMET,
-					Item::GOLD_HELMET 
-			);
+					Item::GOLD_HELMET );
 			foreach ( $arlist as $arl ) {
 				if ($ar == new Item ( $arl, 0, 1 )) {
-					if ($arl == Item::LEATHER_CAP)
-						$nocount = 0.5;
-					if ($arl == Item::CHAIN_HELMET)
-						$nocount = 0.5;
-					if ($arl == Item::IRON_HELMET)
-						$nocount = 0.8;
-					if ($arl == Item::DIAMOND_HELMET)
-						$nocount = 1.2;
-					if ($arl == Item::GOLD_HELMET)
-						$nocount = 1.5;
+					if ($arl == Item::LEATHER_CAP) $nocount = 0.5;
+					if ($arl == Item::CHAIN_HELMET) $nocount = 0.5;
+					if ($arl == Item::IRON_HELMET) $nocount = 0.8;
+					if ($arl == Item::DIAMOND_HELMET) $nocount = 1.2;
+					if ($arl == Item::GOLD_HELMET) $nocount = 1.5;
 				}
 			}
 		}
-		if (isset ( $nocunt ))
-			return $nocunt;
+		if (isset ( $nocunt )) return $nocunt;
 	}
 	public function AllKillEntity() {
 		$entities = $this->getServer ()->getDefaultLevel ()->getEntities ();
@@ -267,10 +246,9 @@ class HungerGames extends PluginBase implements Listener {
 			$cz = abs ( $z - $victim->z );
 			$damage -= $this->ArmorDamageCalc ( $victim );
 			if (isset ( $this->users [$victim->getName ()] )) {
-				if ($this->users [$victim->getName ()]->invincible == 0)
-					if ($cx <= 20 and $cz <= 20) {
-						$victim->directDataPacket ( $exp );
-					}
+				if ($this->users [$victim->getName ()]->invincible == 0) if ($cx <= 20 and $cz <= 20) {
+					$victim->directDataPacket ( $exp );
+				}
 				if ($cx <= $radius and $cz <= $radius) {
 					if ($victim->getHealth () - $damage <= 0 and $victim->spawned == true and $victim->dead == false) {
 						$this->KillUpdate ( $murder, $victim );
