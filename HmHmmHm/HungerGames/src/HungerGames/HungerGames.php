@@ -18,7 +18,7 @@ use pocketmine\block\Block;
 use pocketmine\item\Item;
 use pocketmine\scheduler\CallbackTask;
 use pocketmine\network\protocol\AddEntityPacket;
-use pocketmine\event\entity\EntityShootBowEvent;
+use pocketmine\event\entity\ProjectileLaunchEvent;
 use pocketmine\utils\Config;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\command\CommandSender;
