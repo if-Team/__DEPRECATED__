@@ -1,5 +1,5 @@
 name: ColorTag
 main: ColorTag\ColorTag
-version: "1.0"
+version: "2.0"
 author: IchiKaku
 api: [1.10.0]
