@@ -131,9 +131,9 @@ class HungerGames extends PluginBase implements Listener {
 					if ($victim instanceof Player) {
 						$totalDamaged -= $this->ArmorDamageCalc ( $victim );
 					}
-					if ($totalDamaged > 0) $victim->attack ( $totalDamaged, EntityDamageEvent::CAUSE_ENTITY_ATTACK );
+					if ($totalDamaged > 0) $event->setDamage ( $event->getDamage () + $totalDamaged );
 					if (isset ( $this->attackcool [$murder->getName ()] )) if (time () - $this->attackcool [$murder->getName ()] <= 1) return;
-					if ($victim->getHealth () - $event->getFinalDamage () <= 0) {
+					if ($victim->getHealth () - $event->getDamage () <= 0) {
 						$this->KillUpdate ( $murder, $victim );
 						$this->attackcool [$murder->getName ()] = time ();
 					}
@@ -142,8 +142,8 @@ class HungerGames extends PluginBase implements Listener {
 			}
 		}
 	}
-	public function checkArrow(EntityShootBowEvent $event) {
-		if ($event->getEntity () instanceof Player) $this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
+	public function checkArrow(ProjectileLaunchEvent $event) {
+		if ($entity instanceof Arrow) $this->getServer ()->getScheduler ()->scheduleDelayedTask ( new CallbackTask ( [ 
 				$this,
 				"removeArrow" ], [ 
 				$event ] ), 20 );
@@ -174,7 +174,7 @@ class HungerGames extends PluginBase implements Listener {
 		$player = $event->getPlayer ();
 		$item = $event->getItem ()->getID ();
 		
-		if ($block->getID () == Item::NETHER_REACTOR and isset ( $this->users [$player->getName ()] )) {
+		if (($block->getID () == Item::NETHER_REACTOR or $block->getID () == Item::DIAMOND_BLOCK) and isset ( $this->users [$player->getName ()] )) {
 			$this->users [$player->getName ()]->TouchCheck ( $player, $block->getX (), $block->getY (), $block->getZ (), 1 );
 			$event->setCancelled ();
 			return;
@@ -271,7 +271,10 @@ class HungerGames extends PluginBase implements Listener {
 		$arrow = $event->getProjectile ();
 		$murder = $event->getEntity ();
 		$this->ShockWave ( $arrow->x, $arrow->y, $arrow->z, 5, 5, $murder );
-		$arrow->kill ();
+		$reflection_class = new \ReflectionClass ( $arrow );
+		$property = $reflection_class->getProperty ( 'age' );
+		$property->setAccessible ( true );
+		$property->setValue ( $arrow, 7000 );
 	}
 	public function removeBlock($block) {
 		$block->getLevel ()->setBlock ( $block, Block::get ( 0, 0 ) );
