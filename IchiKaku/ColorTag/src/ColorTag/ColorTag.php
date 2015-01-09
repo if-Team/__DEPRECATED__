@@ -1,5 +1,5 @@
 <?php
-// 보류
+
 namespace ColorTag;
 
 use pocketmine\plugin\PluginBase;
