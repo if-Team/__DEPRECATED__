@@ -11,7 +11,7 @@ class AntiMacro extends PluginBase implements Listener {
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 		$this->getServer ()->getLogger ()->info ( TextFormat::GOLD . "[AntiMacro]플러그인이 활성화 되었습니다" );
 	}
-	public function check_macro(BlockBreakEvent $e) {
+	public function check_macro() {
 		//TODO : 매크로 감지이이이이이잉
 	}
 	public function anti_macro() {
