@@ -43,9 +43,6 @@ class HungerGames extends PluginBase implements Listener {
 		$this->config = new Config ( $this->getDataFolder () . "hunger_data.yml", Config::YAML );
 		$this->config_data = $this->config->getAll ();
 		$this->getLogger ()->info ( "HungerGames Loaded" );
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
-				$this,
-				"AllKillEntity" ] ), 20 * 25 );
 	}
 	public function onDisable() {
 		$this->config->setAll ( $this->config_data );
@@ -113,7 +110,6 @@ class HungerGames extends PluginBase implements Listener {
 		if ($event instanceof EntityDamageByEntityEvent) {
 			$victim = $event->getEntity ();
 			$murder = $event->getDamager ();
-			// $this->users[$event->getPlayer()->getName()]["firstpos"]
 			if ($victim instanceof Player) {
 				if ($this->users [$victim->getName ()]->ATField == 1) return;
 				if (isset ( $this->users [$victim->getName ()]->firstpos )) {
@@ -244,16 +240,6 @@ class HungerGames extends PluginBase implements Listener {
 			}
 		}
 	}
-	public function AllKillEntity() {
-		$entities = $this->getServer ()->getDefaultLevel ()->getEntities ();
-		foreach ( $entities as $ent ) {
-			if (! $ent instanceof Player) {
-				if (! $ent instanceof Villager) {
-					$ent->kill ();
-				}
-			}
-		}
-	}
 	public function ShockWave($x, $y, $z, $radius, $damage, $murder) {
 		$dcount = $damage;
 		$exp = new ExplodePacket ();
@@ -261,7 +247,6 @@ class HungerGames extends PluginBase implements Listener {
 		$exp->y = $y;
 		$exp->z = $z;
 		$exp->radius = 32;
-		// Server::broadcastPacket ( $murder->getLevel ()->getPlayers (), $exp );
 		$entities = $this->getServer ()->getDefaultLevel ()->getEntities ();
 		foreach ( $entities as $victim ) {
 			if ($victim instanceof Player or $victim instanceof Villager) {
