@@ -1,0 +1,16 @@
+name: getIP
+main: getIP\getIP
+version: "1.0"
+author: May
+api: [1.4.1]
+
+commands:
+ getip:
+  usage: /getip [player]
+  permission: getip.command.getip
+  description: 아이피를 알아냅니다.
+
+permissions:
+ getip.command.*:
+  default: op
+  description: false

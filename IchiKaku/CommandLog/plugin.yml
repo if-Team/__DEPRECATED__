@@ -1,0 +1,5 @@
+name: Aide
+main: IchiKaku\Aide\Aide
+version: "0.1.2"
+author: IchiKaku
+api: [1.10.0]
