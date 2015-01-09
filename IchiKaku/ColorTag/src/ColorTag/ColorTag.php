@@ -6,6 +6,8 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\utils\TextFormat;
+use pocketmine\event\player\PlayerDeathEvent;
+use pocketmine\event\player\PlayerRespawnEvent;
 
 class ColorTag extends PluginBase implements Listener {
 	public function onEnable() {
@@ -14,16 +16,28 @@ class ColorTag extends PluginBase implements Listener {
 	}
 	public function nameTag(PlayerJoinEvent $e) {
 		$e->getPlayer ()->setRemoveFormat ( false );
-		$player = $e->getPlayer ();
-		$name = $player->getName ();
-		$sname = "[User]" . $name;
-		$oname = "[OP]" . $name;
+		$name = $e->getPlayer()->getName ();
 		if ($e->getPlayer()->isOp()) {
-			$player->setNameTag (TextFormat::YELLOW.$oname );
+			$e->getPlayer()->setNameTag ("[OP]".$oname );
 		} else {
-			$player->setNameTag (TextFormat::GREEN.$sname );
+			$e->getPlayer()->setNameTag ("USER".$sname );
 		}
 	}
+	public function deathTag(PlayerDeathEvent $e) {
+		$tag = $e->getPlayer()->getNameTag();
+		$e->getPlayer()->setRemoveFormat(false);
+		$e->getPlayer()->setNameTag("[Death]".$tag);
+	}
+	public function liveTag(PlayerRespawnEvent $e) {
+		$e->getPlayer ()->setRemoveFormat ( false );
+		$name = $e->getPlayer()->getName ();
+		if ($e->getPlayer()->isOp()) {
+			$e->getPlayer()->setNameTag ("[OP]".$oname );
+		} else {
+			$e->getPlayer()->setNameTag ("USER".$sname );
+		}
+	}
+	
 }
 
 ?>
