@@ -25,8 +25,7 @@ class Farms extends PluginBase implements Listener {
 		$this->farmlist = new Config ( $this->getDataFolder () . "farmlist.yml", Config::YAML );
 		$this->farmdata = $this->farmlist->getAll ();
 		$this->farmconfig = new Config ( $this->getDataFolder () . "speed.yml", Config::YAML, array (
-				"growing-time" => 1200 
-		) );
+				"growing-time" => 1200 ) );
 		$this->configdata = $this->farmconfig->getAll ();
 		$this->growids = [ 
 				Item::SEEDS,
@@ -36,8 +35,7 @@ class Farms extends PluginBase implements Listener {
 				Item::SUGAR_CANE,
 				Item::SUGARCANE_BLOCK,
 				Item::PUMPKIN_SEEDS,
-				Item::MELON_SEEDS 
-		];
+				Item::MELON_SEEDS ];
 		$this->blockids = [ 
 				Item::WHEAT_BLOCK,
 				Item::CARROT_BLOCK,
@@ -46,12 +44,10 @@ class Farms extends PluginBase implements Listener {
 				Item::SUGARCANE_BLOCK,
 				Item::SUGARCANE_BLOCK,
 				Item::PUMPKIN_STEM,
-				Item::MELON_STEM 
-		];
+				Item::MELON_STEM ];
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
 				$this,
-				"Farms" 
-		] ), 20 );
+				"Farms" ] ), 20 );
 	}
 	public function onDisable() {
 		$this->getLogger ()->info ( "YML Saved" );
@@ -90,8 +86,7 @@ class Farms extends PluginBase implements Listener {
 		
 		foreach ( $this->growids as $index => $growid ) {
 			if ($itemid == $growid) {
-				if (isset ( $this->farmdata [$block->x . "." . $block->y . "." . $block->z] ))
-					unset ( $this->farmdata [$block->x . "." . $block->y . "." . $block->z] );
+				if (isset ( $this->farmdata [$block->x . "." . $block->y . "." . $block->z] )) unset ( $this->farmdata [$block->x . "." . $block->y . "." . $block->z] );
 			}
 		}
 	}
@@ -193,14 +188,12 @@ class CocoaBeanBlock extends Flowable {
 			$drops [] = [ 
 					351,
 					3,
-					mt_rand ( 1, 4 ) 
-			];
+					mt_rand ( 1, 4 ) ];
 		} else {
 			$drops [] = [ 
 					351,
 					3,
-					1 
-			];
+					1 ];
 		}
 		return $drops;
 	}
