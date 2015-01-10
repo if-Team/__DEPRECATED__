@@ -48,6 +48,7 @@ class AnnouncePro extends PluginBase implements Listener {
 		$commandMap = $this->getServer ()->getCommandMap ();
 		$command = new PluginCommand ( $name, $this );
 		$command->setDescription ( $description );
+		$command->setPermission ( "announcepro" );
 		$command->setUsage ( $usage );
 		$commandMap->register ( $fallback, $command );
 	}
