@@ -21,13 +21,11 @@ class AnnouncePro extends PluginBase implements Listener {
 				"repeat-time" => 5,
 				"prefix" => "[ 서버 ]",
 				"suffix" => "",
-				"announce" => [ ] 
-		] );
+				"announce" => [ ] ] );
 		$this->configData = $this->config->getAll ();
 		$this->callback = $this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
 				$this,
-				"AnnouncePro" 
-		] ), $this->configData ["repeat-time"] * 20 );
+				"AnnouncePro" ] ), $this->configData ["repeat-time"] * 20 );
 	}
 	public function onDisable() {
 		$this->config->setAll ( $this->configData );
@@ -50,8 +48,8 @@ class AnnouncePro extends PluginBase implements Listener {
 			case "추가" :
 				array_shift ( $args );
 				$text = $this->replaceColor ( implode ( " ", $args ) );
-				if($text == "" or $text == " "){
-					$player->sendMessage(TextFormat::DARK_AQUA . "/공지 추가 <번호>");
+				if ($text == "" or $text == " ") {
+					$player->sendMessage ( TextFormat::DARK_AQUA . "/공지 추가 <번호>" );
 					break;
 				}
 				$this->configData ["announce"] [] = $text;
@@ -94,8 +92,7 @@ class AnnouncePro extends PluginBase implements Listener {
 				$this->callback->remove ();
 				$this->callback = $this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
 						$this,
-						"AnnouncePro" 
-				] ), $this->configData ["repeat-time"] * 20 );
+						"AnnouncePro" ] ), $this->configData ["repeat-time"] * 20 );
 				$player->sendMessage ( TextFormat::DARK_AQUA . "해당 시간초만큼 반복을 설정했습니다 !" );
 				break;
 			case "접두사" :
@@ -121,19 +118,14 @@ class AnnouncePro extends PluginBase implements Listener {
 		return true;
 	}
 	public function AnnouncePro() {
-		if ($this->configData ["enable"] != true)
-			return;
-			// TODO 이전공지일경우 안뜨게 조치
-		if (isset ( $this->configData ["announce"] ))
+		if ($this->configData ["enable"] != true) return;
+		// TODO 이전공지일경우 안뜨게 조치
+		if (isset ( $this->configData ["announce"] )) $rand = rand ( 0, count ( $this->configData ["announce"] ) - 1 );
+		if (count ( $this->configData ["announce"] ) > 3) while ( $rand == $this->before )
 			$rand = rand ( 0, count ( $this->configData ["announce"] ) - 1 );
-		if (count ( $this->configData ["announce"] ) > 3)
-			while ( $rand == $this->before )
-				$rand = rand ( 0, count ( $this->configData ["announce"] ) - 1 );
 		$this->before = $rand;
-		if (isset ( $rand ))
-			if (isset ( $this->configData ["announce"] [$rand] ))
-				foreach ( $this->getServer ()->getOnlinePlayers () as $player )
-					$player->sendMessage ( $this->configData ["prefix"] . " " . $this->configData ["announce"] [$rand] . " " . $this->configData ["suffix"] );
+		if (isset ( $rand )) if (isset ( $this->configData ["announce"] [$rand] )) foreach ( $this->getServer ()->getOnlinePlayers () as $player )
+			$player->sendMessage ( $this->configData ["prefix"] . " " . $this->configData ["announce"] [$rand] . " " . $this->configData ["suffix"] );
 	}
 	public function replaceColor($text) {
 		for($i = 0; $i <= 9; $i ++)
@@ -150,16 +142,14 @@ class AnnouncePro extends PluginBase implements Listener {
 		$index_key = array_keys ( $target );
 		$full_index = floor ( $index_count / $once_print );
 		
-		if ($index_count > $full_index * $once_print)
-			$full_index ++;
+		if ($index_count > $full_index * $once_print) $full_index ++;
 		
 		if ($index <= $full_index) {
 			$player->sendMessage ( TextFormat::DARK_AQUA . "*공지리스트를 표시합니다 ! ({$index}/{$full_index}) 총: {$index_count}개" );
 			$message = null;
 			for($for_i = $once_print; $for_i >= 1; $for_i --) {
 				$now_index = $index * $once_print - $for_i;
-				if (! isset ( $index_key [$now_index] ))
-					break;
+				if (! isset ( $index_key [$now_index] )) break;
 				$now_key = $index_key [$now_index];
 				$message .= TextFormat::DARK_AQUA . "[" . $now_key . "] : " . $target [$now_key] . "\n";
 			}
