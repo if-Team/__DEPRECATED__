@@ -20,7 +20,6 @@ class Farms extends PluginBase implements Listener {
 	public $farmlist, $farmdata, $growids, $blockids;
 	public $farmconfig, $configdata;
 	public function onEnable() {
-		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 		@mkdir ( $this->getDataFolder () );
 		$this->farmlist = new Config ( $this->getDataFolder () . "farmlist.yml", Config::YAML );
 		$this->farmdata = $this->farmlist->getAll ();
@@ -35,7 +34,8 @@ class Farms extends PluginBase implements Listener {
 				Item::SUGAR_CANE,
 				Item::SUGARCANE_BLOCK,
 				Item::PUMPKIN_SEEDS,
-				Item::MELON_SEEDS ];
+				Item::MELON_SEEDS,
+				351 ];
 		$this->blockids = [ 
 				Item::WHEAT_BLOCK,
 				Item::CARROT_BLOCK,
@@ -44,18 +44,21 @@ class Farms extends PluginBase implements Listener {
 				Item::SUGARCANE_BLOCK,
 				Item::SUGARCANE_BLOCK,
 				Item::PUMPKIN_STEM,
-				Item::MELON_STEM ];
+				Item::MELON_STEM,
+				127 ];
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
 				$this,
 				"Farms" ] ), 20 );
+		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
 	public function onDisable() {
-		$this->getLogger ()->info ( "YML Saved" );
 		$this->farmlist->setAll ( $this->farmdata );
 		$this->farmlist->save ();
 		$this->farmconfig->save ();
 	}
 	public function onBlock(PlayerInteractEvent $event) {
+		if (! $event->getPlayer ()->hasPermission ( "Farms" )) return;
+		
 		$block = $event->getBlock ()->getSide ( 1 );
 		$blockid = $block->getID ();
 		$itemid = $event->getItem ()->getID ();
