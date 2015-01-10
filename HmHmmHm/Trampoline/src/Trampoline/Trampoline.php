@@ -18,11 +18,9 @@ class Trampoline extends PluginBase implements Listener {
 	public function onMove(PlayerMoveEvent $event) {
 		$player = $event->getPlayer ();
 		
-		if ($player->isOnGround () or $player == null)
-			return;
+		if ($player->isOnGround () or $player == null) return;
 		
-		if ($player->getLevel () == null)
-			return;
+		if ($player->getLevel () == null) return;
 		
 		$x = ( int ) round ( $player->x - 0.5 );
 		$y = ( int ) round ( $player->y - 1 );
@@ -36,8 +34,7 @@ class Trampoline extends PluginBase implements Listener {
 		}
 	}
 	public function fallenQueue(Player $player) {
-		if ($player == null)
-			return;
+		if ($player == null) return;
 		if (isset ( $this->fallen [$player->getName ()] )) {
 			$this->fallen [$player->getName ()] ++;
 		} else {
@@ -46,14 +43,12 @@ class Trampoline extends PluginBase implements Listener {
 	}
 	public function fallenDamagePrevent(EntityDamageEvent $event) {
 		if ($event->getCause () == EntityDamageEvent::CAUSE_FALL) {
-			if (! $event->getEntity () instanceof Player)
-				return;
+			if (! $event->getEntity () instanceof Player) return;
 			
 			if (isset ( $this->fallen [$event->getEntity ()->getName ()] )) {
 				$event->setDamage ( 0 );
 				$this->fallen [$event->getEntity ()->getName ()] --;
-				if ($this->fallen [$event->getEntity ()->getName ()] == 0)
-					unset ( $this->fallen [$event->getEntity ()->getName ()] );
+				if ($this->fallen [$event->getEntity ()->getName ()] == 0) unset ( $this->fallen [$event->getEntity ()->getName ()] );
 				
 				$reflection_class = new \ReflectionClass ( "\\pocketmine\\Player" );
 				$property = $reflection_class->getProperty ( 'inAirTicks' );
