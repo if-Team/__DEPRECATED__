@@ -1,0 +1,5 @@
+name: Rebirth
+main: Rebirth\Rebirth
+version: "1.0"
+author: May
+api: [1.4.1]

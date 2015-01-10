@@ -1,0 +1,5 @@
+name: Aide
+main: IchiKaku\AntiMacro\AntiMacro
+version: "0.1"
+author: IchiKaku
+api: [1.10.0]

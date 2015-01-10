@@ -1,0 +1,16 @@
+name: Imprison
+main: Imprison\Imprison
+version: "1.0"
+author: May
+api: [1.6.0]
+
+commands:
+ imp:
+  usage: /imp [player] [time]
+  permission: imprison.command.imp
+  description: 플레이어를 일정시간동안 구속합니다.
+
+permissions:
+ imprison.command.*:
+  default: op
+  description: false

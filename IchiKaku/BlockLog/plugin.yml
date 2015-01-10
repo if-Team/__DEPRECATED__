@@ -1,0 +1,5 @@
+name: BlockLog
+main: IchiKaku\BlockLog\BlockLog
+version: "1.0"
+author: IchiKaku
+api: [1.10.0]
