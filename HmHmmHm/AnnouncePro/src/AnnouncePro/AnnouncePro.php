@@ -18,7 +18,7 @@ class AnnouncePro extends PluginBase implements Listener {
 		@mkdir ( $this->getDataFolder () );
 		
 		$this->initMessage ();
-		$this->registerCommand ( $this->get ( "commands-announce" ), "AnnouncePro" );
+		$this->registerCommand ( $this->get ( "commands-announce" ), "AnnouncePro", "announcepro" );
 		
 		$this->config = new Config ( $this->getDataFolder () . "announce.yml", Config::YAML, [ 
 				"enable" => true,
@@ -44,11 +44,11 @@ class AnnouncePro extends PluginBase implements Listener {
 	public function get($var) {
 		return $this->messages [$this->messages ["default-language"] . "-" . $var];
 	}
-	public function registerCommand($name, $fallback = "", $description = "", $usage = "") {
+	public function registerCommand($name, $fallback, $permission, $description = "", $usage = "") {
 		$commandMap = $this->getServer ()->getCommandMap ();
 		$command = new PluginCommand ( $name, $this );
 		$command->setDescription ( $description );
-		$command->setPermission ( "announcepro" );
+		$command->setPermission ( $permission );
 		$command->setUsage ( $usage );
 		$commandMap->register ( $fallback, $command );
 	}
