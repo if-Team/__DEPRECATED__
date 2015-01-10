@@ -4,17 +4,7 @@ author: hm
 version : 3.3-alpha
 api: [1.4.1]
 
-commands:
- ent:
-   permission: EconomyEntities.commands.ent
-   description: EconomyEntities control commands
-   usage: /ent
- 엔티티:
-   permission: EconomyEntities.commands.ent
-   description: EconomyEntities control commands
-   usage: /엔티티
-
 permission:
- ent.commands.*:
+ economyentities:
   default: OP
   description: Allows commands of EconomyEntities control

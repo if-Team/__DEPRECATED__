@@ -44,10 +44,8 @@ use pocketmine\item\Item;
 use pocketmine\event\player\PlayerItemConsumeEvent;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerQuitEvent;
+use pocketmine\command\PluginCommand;
 
-// TODO 유저가 설치하면 죽음
-// TODO 유저가 설치한 몹이죽으면 아이템스폰
-// TODO 본인이 설치한게 아니면 함부러 못죽임
 class EconomyEntities extends PluginBase implements Listener {
 	/*
 	 * @var YML File variable
@@ -75,6 +73,8 @@ class EconomyEntities extends PluginBase implements Listener {
 			Item::WOODEN_AXE ];
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
+		$this->initMessage ();
+		$this->registerCommand ( $this->get ( "commands-entities" ), "EconomyEntities", "economyentities" );
 		Entity::registerEntity ( Entities::class, true );
 		$this->move_pk = new MovePlayerPacket ();
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
@@ -93,6 +93,21 @@ class EconomyEntities extends PluginBase implements Listener {
 		$this->configyml->setAll ( $this->config );
 		$this->configyml->save ();
 	}
+	public function initMessage() {
+		$this->saveResource ( "messages.yml", false );
+		$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
+	}
+	public function get($var) {
+		return $this->messages [$this->messages ["default-language"] . "-" . $var];
+	}
+	public function registerCommand($name, $fallback, $permission, $description = "", $usage = "") {
+		$commandMap = $this->getServer ()->getCommandMap ();
+		$command = new PluginCommand ( $name, $this );
+		$command->setDescription ( $description );
+		$command->setPermission ( $permission );
+		$command->setUsage ( $usage );
+		$commandMap->register ( $fallback, $command );
+	}
 	public function onDrop(PlayerItemConsumeEvent $event) {
 		if ($event->getItem () instanceof Arrow) {
 			if ($event->getItem ()->shootingEntity == null) return;
@@ -108,19 +123,19 @@ class EconomyEntities extends PluginBase implements Listener {
 						if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 						$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
 						$event->getDamager ()->getInventory ()->addItem ( Item::get ( Item::EGG ) );
-						$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . "달걀을 성공적으로 얻었습니다 !" );
+						$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-egg" ) );
 						$this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
 					} else {
 						$before = $this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()];
 						$after = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
 						$timeout = intval ( $after - $before );
 						if ($timeout < $this->config ["Reward-DelayTime"]) {
-							$event->getDamager ()->sendMessage ( TextFormat::RED . "아직 닭이 달걀을 낳지 않았어요 !" );
+							$event->getDamager ()->sendMessage ( TextFormat::RED . $this->get ( "not-yet-ready-egg" ) );
 						} else {
 							if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 							$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
 							$event->getDamager ()->getInventory ()->addItem ( Item::get ( Item::EGG ) );
-							$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . "달걀을 성공적으로 얻었습니다 !" );
+							$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-egg" ) );
 							unset ( $this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()] );
 						}
 					}
@@ -132,21 +147,21 @@ class EconomyEntities extends PluginBase implements Listener {
 						if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 						$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
 						$event->getDamager ()->getInventory ()->addItem ( Item::get ( Item::RAW_BEEF ) );
-						$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . "생고기를 성공적으로 잘라냈습니다 !" );
+						$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-steak" ) );
 						$this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
 					} else {
 						$before = $this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()];
 						$after = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
 						$timeout = intval ( $after - $before );
 						if ($timeout < $this->config ["Reward-DelayTime"]) {
-							$event->getDamager ()->sendMessage ( TextFormat::RED . "아직 소가 자라나지 않았습니다 !" );
+							$event->getDamager ()->sendMessage ( TextFormat::RED . $this->get ( "not-yet-ready-steak" ) );
 							$event->setCancelled ();
 						} else {
 							$event->setDamage ( 0 );
 							if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 							$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
 							$event->getDamager ()->getInventory ()->addItem ( Item::get ( Item::RAW_BEEF ) );
-							$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . "생고기를 성공적으로 잘라냈습니다 !" );
+							$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-steak" ) );
 							unset ( $this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()] );
 						}
 					}
@@ -157,21 +172,21 @@ class EconomyEntities extends PluginBase implements Listener {
 						if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 						$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
 						$event->getDamager ()->getInventory ()->addItem ( Item::get ( Item::RAW_PORKCHOP ) );
-						$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . "고기를 성공적으로 얻었습니다 !" );
+						$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-pork" ) );
 						$this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
 					} else {
 						$before = $this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()];
 						$after = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
 						$timeout = intval ( $after - $before );
 						if ($timeout < $this->config ["Reward-DelayTime"]) {
-							$event->getDamager ()->sendMessage ( TextFormat::RED . "아직 돼지가 자라나지 않았습니다 !" );
+							$event->getDamager ()->sendMessage ( TextFormat::RED . $this->get ( "not-yet-ready-pork" ) );
 							$event->setCancelled ();
 						} else {
 							$event->setDamage ( 0 );
 							if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 							$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
 							$event->getDamager ()->getInventory ()->addItem ( Item::get ( Item::RAW_PORKCHOP ) );
-							$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . "고기를 성공적으로 얻었습니다 !" );
+							$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-pork" ) );
 							unset ( $this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()] );
 						}
 					}
@@ -181,19 +196,19 @@ class EconomyEntities extends PluginBase implements Listener {
 						if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 						$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
 						$event->getDamager ()->getInventory ()->addItem ( Item::get ( Item::WOOL ) );
-						$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . "양털을 성공적으로 잘라냈습니다 !" );
+						$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-wool" ) );
 						$this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
 					} else {
 						$before = $this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()];
 						$after = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
 						$timeout = intval ( $after - $before );
 						if ($timeout < $this->config ["Reward-DelayTime"]) {
-							$event->getDamager ()->sendMessage ( TextFormat::RED . "아직 양털이 잘라질 만큼 길지않아요 !" );
+							$event->getDamager ()->sendMessage ( TextFormat::RED . $this->get ( "not-yet-ready-wool" ) );
 						} else {
 							if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 							$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
 							$event->getDamager ()->getInventory ()->addItem ( Item::get ( Item::WOOL ) );
-							$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . "양털을 성공적으로 잘라냈습니다 !" );
+							$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-wool" ) );
 							unset ( $this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()] );
 						}
 					}
@@ -204,7 +219,7 @@ class EconomyEntities extends PluginBase implements Listener {
 						if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 						$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
 						$event->getDamager ()->getInventory ()->addItem ( Item::get ( array_rand ( $this->villager_item ), 0, 1 ) );
-						$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . "주민의 아이템을 얻었습니다 !" );
+						$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-villager-item" ) );
 					}
 					break;
 				case 34 :
@@ -212,7 +227,7 @@ class EconomyEntities extends PluginBase implements Listener {
 						if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 						$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
 						$event->getDamager ()->getInventory ()->addItem ( Item::get ( Item::BONE, 0, 3 ) );
-						$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . "스켈레톤의 뼈를 얻었습니다 !" );
+						$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-skelleton-item" ) );
 					}
 			}
 		}
@@ -233,119 +248,111 @@ class EconomyEntities extends PluginBase implements Listener {
 		return mktime ( $hh, $ii, $ss, $mm, $dd, $yy );
 	}
 	public function onCommand(CommandSender $sender, Command $command, $label, array $args) {
-		if ($command->getName () == "ent" or $command->getName () == "엔티티") {
-			if (! isset ( $args [0] )) {
-				$sender->sendMessage ( TextFormat::DARK_AQUA . "*사용가능 명령어 리스트 :" );
-				$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 활성화" );
-				$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 비활성화" );
-				$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 추가" );
-				$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 초기화" );
-				return true;
-			}
-			if ($args [0] == "add" or $args [0] == "추가") {
-				if (! $sender instanceof Player) {
-					if (! isset ( $args [1] )) {
-						$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 추가" . TextFormat::WHITE . " x:y:z" );
-						return true;
-					} else {
-						$verify = explode ( ":", $args [1] );
-						for($i = 0; $i <= 2; $i ++) {
-							if (! isset ( $verify [$i] )) {
-								$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 추가" . TextFormat::WHITE . " x:y:z" );
-								return true;
-							}
-							if (! is_numeric ( $verify [$i] )) {
-								$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 추가" . TextFormat::WHITE . " x:y:z" );
-								return true;
-							}
-						}
-						$botspawncount = ++ $this->config ["BotSpawnCount"];
-						$this->config ["BotSpawnList"] [$botspawncount] ["pos"] = $args [1];
-						$this->config ["BotSpawnList"] [$botspawncount] ["level"] = $sender->getLevel ()->getFolderName ();
-						$sender->sendMessage ( TextFormat::RED . "[ 안내 ] " . $botspawncount . "번째 봇 스폰 좌표가 추가되었습니다" );
-						$this->Respawn ( $botspawncount );
-						return true;
-					}
-				}
-				if (! isset ( $args [1] )) {
-					$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 추가 " . TextFormat::WHITE . "닭" );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 추가 " . TextFormat::WHITE . "주민" );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 추가 " . TextFormat::WHITE . "돼지" );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 추가 " . TextFormat::WHITE . "소" );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 추가 " . TextFormat::WHITE . "양" );
-					$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 추가 " . TextFormat::WHITE . "스켈레톤" );
-					return true;
-				}
-				$botspawncount = ++ $this->config ["BotSpawnCount"];
-				switch (strtolower ( $args [1] )) {
-					case "닭" :
-					case "chicken" :
-						$this->config ["BotSpawnList"] [$botspawncount] ["id"] = 10;
-						$this->config ["BotSpawnList"] [$botspawncount] ['name'] = "닭";
-						break;
-					case "소" :
-					case "cow" :
-						$this->config ["BotSpawnList"] [$botspawncount] ["id"] = 11;
-						$this->config ["BotSpawnList"] [$botspawncount] ['name'] = "소";
-						break;
-					case "돼지" :
-					case "pig" :
-						$this->config ["BotSpawnList"] [$botspawncount] ["id"] = 12;
-						$this->config ["BotSpawnList"] [$botspawncount] ['name'] = "돼지";
-						break;
-					case "양" :
-					case "sheep" :
-						$this->config ["BotSpawnList"] [$botspawncount] ["id"] = 13;
-						$this->config ["BotSpawnList"] [$botspawncount] ['name'] = "양";
-						break;
-					case "주민" :
-					case "npc" :
-						$this->config ["BotSpawnList"] [$botspawncount] ["id"] = 15;
-						$this->config ["BotSpawnList"] [$botspawncount] ['name'] = "NPC";
-						break;
-					case "스켈레톤" :
-					case "skell" :
-						$this->config ["BotSpawnList"] [$botspawncount] ["id"] = 34;
-						$this->config ["BotSpawnList"] [$botspawncount] ['name'] = "스켈레톤";
-						break;
-					default :
-						$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 추가 " . TextFormat::WHITE . "닭" );
-						$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 추가 " . TextFormat::WHITE . "주민" );
-						$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 추가 " . TextFormat::WHITE . "돼지" );
-						$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 추가 " . TextFormat::WHITE . "소" );
-						$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 추가 " . TextFormat::WHITE . "양" );
-						$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 추가 " . TextFormat::WHITE . "스켈레톤" );
-						return true;
-				}
-				$this->config ["BotSpawnList"] [$botspawncount] ["pos"] = floor ( $sender->x ) . ":" . floor ( $sender->y ) . ":" . floor ( $sender->z );
-				$this->config ["BotSpawnList"] [$botspawncount] ["level"] = $sender->getLevel ()->getFolderName ();
-				$sender->sendMessage ( TextFormat::RED . "[ 안내 ] " . $botspawncount . "번째 " . $this->config ["BotSpawnList"] [$botspawncount] ['name'] . " 스폰 좌표가 추가되었습니다" );
-				$this->Respawn ( $botspawncount );
-				return true;
-			}
-			if ($args [0] == "clear" or $args [0] == "초기화") {
-				$this->config ["BotSpawnCount"] = 0;
-				unset ( $this->config ["BotSpawnList"] );
-				$sender->sendMessage ( TextFormat::RED . "[ 안내 ] 모든 봇 스폰 좌표가 초기화 되었습니다 !" );
-				return true;
-			}
-			if ($args [0] == "enable" or $args [0] == "활성화") {
-				$this->config ["BotSpawn"] = true;
-				$this->getServer ()->broadcastMessage ( TextFormat::RED . "[ 주의 ] 봇 스폰이 활성화 되었습니다 !" );
-				return true;
-			}
-			if ($args [0] == "disable" or $args [0] == "비활성화") {
-				$this->config ["BotSpawn"] = false;
-				$this->getServer ()->broadcastMessage ( TextFormat::RED . "[ 안내 ] 봇 스폰이 비활성화 되었습니다 !" );
-				return true;
-			}
-			$sender->sendMessage ( TextFormat::DARK_AQUA . "사용가능 명령어 리스트 :" );
-			$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 활성화" );
-			$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 비활성화" );
-			$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 추가" );
-			$sender->sendMessage ( TextFormat::DARK_AQUA . "/엔티티 초기화" );
+		if (! isset ( $args [0] )) {
+			$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entities-help-1" ) );
+			$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entities-help-2" ) );
+			$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entities-help-3" ) );
+			$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entities-help-4" ) );
+			$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entities-help-5" ) );
 			return true;
 		}
+		if ($args [0] == $this->get ( "sub-commands-add" )) {
+			if (! $sender instanceof Player) {
+				if (! isset ( $args [1] )) {
+					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entity-add" ) . TextFormat::WHITE . " x:y:z" );
+					return true;
+				} else {
+					$verify = explode ( ":", $args [1] );
+					for($i = 0; $i <= 2; $i ++) {
+						if (! isset ( $verify [$i] )) {
+							$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entity-add" ) . TextFormat::WHITE . " x:y:z" );
+							return true;
+						}
+						if (! is_numeric ( $verify [$i] )) {
+							$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entity-add" ) . TextFormat::WHITE . " x:y:z" );
+							return true;
+						}
+					}
+					$botspawncount = ++ $this->config ["BotSpawnCount"];
+					$this->config ["BotSpawnList"] [$botspawncount] ["pos"] = $args [1];
+					$this->config ["BotSpawnList"] [$botspawncount] ["level"] = $sender->getLevel ()->getFolderName ();
+					$sender->sendMessage ( TextFormat::RED . $this->get ( "info-prefix" ) . $botspawncount . $this->get ( "entity-locate-add-success" ) );
+					$this->Respawn ( $botspawncount );
+					return true;
+				}
+			}
+			if (! isset ( $args [1] )) {
+				$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entity-add" ) . TextFormat::WHITE . $this->get ( "chicken" ) );
+				$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entity-add" ) . TextFormat::WHITE . $this->get ( "villager" ) );
+				$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entity-add" ) . TextFormat::WHITE . $this->get ( "pig" ) );
+				$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entity-add" ) . TextFormat::WHITE . $this->get ( "cow" ) );
+				$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entity-add" ) . TextFormat::WHITE . $this->get ( "sheep" ) );
+				$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entity-add" ) . TextFormat::WHITE . $this->get ( "skelleton" ) );
+				return true;
+			}
+			$botspawncount = ++ $this->config ["BotSpawnCount"];
+			switch (strtolower ( $args [1] )) {
+				case $this->get ( "chicken" ) :
+					$this->config ["BotSpawnList"] [$botspawncount] ["id"] = 10;
+					$this->config ["BotSpawnList"] [$botspawncount] ['name'] = $this->get ( "chicken" );
+					break;
+				case $this->get ( "cow" ) :
+					$this->config ["BotSpawnList"] [$botspawncount] ["id"] = 11;
+					$this->config ["BotSpawnList"] [$botspawncount] ['name'] = $this->get ( "cow" );
+					break;
+				case $this->get ( "pig" ) :
+					$this->config ["BotSpawnList"] [$botspawncount] ["id"] = 12;
+					$this->config ["BotSpawnList"] [$botspawncount] ['name'] = $this->get ( "pig" );
+					break;
+				case $this->get ( "sheep" ) :
+					$this->config ["BotSpawnList"] [$botspawncount] ["id"] = 13;
+					$this->config ["BotSpawnList"] [$botspawncount] ['name'] = $this->get ( "sheep" );
+					break;
+				case $this->get ( "villager" ) :
+					$this->config ["BotSpawnList"] [$botspawncount] ["id"] = 15;
+					$this->config ["BotSpawnList"] [$botspawncount] ['name'] = $this->get ( "villager" );
+					break;
+				case $this->get ( "skelleton" ) :
+					$this->config ["BotSpawnList"] [$botspawncount] ["id"] = 34;
+					$this->config ["BotSpawnList"] [$botspawncount] ['name'] = $this->get ( "skelleton" );
+					break;
+				default :
+					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entity-add" ) . TextFormat::WHITE . $this->get ( "chicken" ) );
+					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entity-add" ) . TextFormat::WHITE . $this->get ( "villager" ) );
+					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entity-add" ) . TextFormat::WHITE . $this->get ( "pig" ) );
+					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entity-add" ) . TextFormat::WHITE . $this->get ( "cow" ) );
+					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entity-add" ) . TextFormat::WHITE . $this->get ( "sheep" ) );
+					$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entity-add" ) . TextFormat::WHITE . $this->get ( "skelleton" ) );
+					return true;
+			}
+			$this->config ["BotSpawnList"] [$botspawncount] ["pos"] = floor ( $sender->x ) . ":" . floor ( $sender->y ) . ":" . floor ( $sender->z );
+			$this->config ["BotSpawnList"] [$botspawncount] ["level"] = $sender->getLevel ()->getFolderName ();
+			$sender->sendMessage ( TextFormat::RED . $this->get ( "info-prefix" ) . $botspawncount . $this->get ( "entity-locate-add-success" ) );
+			$this->Respawn ( $botspawncount );
+			return true;
+		}
+		if ($args [0] == $this->get ( "sub-commands-clear" )) {
+			$this->config ["BotSpawnCount"] = 0;
+			unset ( $this->config ["BotSpawnList"] );
+			$sender->sendMessage ( TextFormat::RED . $this->get ( "info-prefix" ) . " " . $this->get ( "entity-clear" ) );
+			return true;
+		}
+		if ($args [0] == $this->get ( "sub-commands-enable" )) {
+			$this->config ["BotSpawn"] = true;
+			$this->getServer ()->broadcastMessage ( TextFormat::RED . $this->get ( "caution-prefix" ) . " " . $this->get ( "entity-spawn-enabled" ) );
+			return true;
+		}
+		if ($args [0] == $this->get ( "sub-commands-disable" )) {
+			$this->config ["BotSpawn"] = false;
+			$this->getServer ()->broadcastMessage ( TextFormat::RED . $this->get ( "info-prefix" ) . " " . $this->get ( "entity-spawn-disabled" ) );
+			return true;
+		}
+		$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entities-help-1" ) );
+		$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entities-help-2" ) );
+		$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entities-help-3" ) );
+		$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entities-help-4" ) );
+		$sender->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "entities-help-5" ) );
+		return true;
 	}
 	/*
 	 * @var SpawnSchedule
@@ -645,7 +652,7 @@ class Entities extends Creature {
 		if ($this->setmotion_pk == null) $this->setmotion_pk = new SetEntityMotionPacket ();
 		if ($this->entityevent_pk == null) $this->entityevent_pk = new EntityEventPacket ();
 		if ($this->removeentity_pk == null) $this->removeentity_pk = new RemoveEntityPacket ();
-		$this->namedtag->id = new String ( "id", "몬스터" );
+		$this->namedtag->id = new String ( "id", "BOT" );
 	}
 	public function spawnTo(Player $player) {
 		parent::spawnTo ( $player );
@@ -661,11 +668,10 @@ class Entities extends Creature {
 		$player->dataPacket ( $this->addmob_pk );
 		
 		$this->setmotion_pk->entities = [ 
-				[ 
-						$this->getID (),
-						$this->motionX,
-						$this->motionY,
-						$this->motionZ ] ];
+				$this->getID (),
+				$this->motionX,
+				$this->motionY,
+				$this->motionZ ];
 		$player->dataPacket ( $this->setmotion_pk );
 	}
 	public function despawnFrom(Player $player) {
@@ -688,11 +694,9 @@ class Entities extends Creature {
 		parent::attack ( $damage, $source );
 		if (! $this->hit instanceof Player and $source instanceof EntityDamageByEntityEvent) if ($source->getDamager () instanceof Player) $this->hit = $source->getDamager ();
 	}
-	public function getData() { // TODO
+	public function getData() {
 		$flags = 0;
 		$flags |= $this->fireTicks > 0 ? 1 : 0;
-		// $flags |= ($this->crouched === true ? 0b10:0) << 1;
-		// $flags |= ($this->inAction === true ? 0b10000:0);
 		return [ 
 				0 => [ 
 						"type" => 0,
