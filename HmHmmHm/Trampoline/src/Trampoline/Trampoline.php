@@ -18,7 +18,7 @@ class Trampoline extends PluginBase implements Listener {
 	public function onMove(PlayerMoveEvent $event) {
 		$player = $event->getPlayer ();
 		
-		if ($player->isOnGround () or $player == null) return;
+		if ($player == null) return;
 		
 		if ($player->getLevel () == null) return;
 		
@@ -29,6 +29,7 @@ class Trampoline extends PluginBase implements Listener {
 		$block = $player->getLevel ()->getBlock ( new Vector3 ( $x, $y, $z ) );
 		
 		if ($block->getID () == 35 and $block->getDamage () == 5) {
+			echo "A";
 			$this->fallenQueue ( $player );
 			$player->addEntityMotion ( 0, 0, 10, 0 );
 		}
