@@ -1,0 +1,61 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+default-language: ko
+
+#(EN) ENGLISH
+
+#(KO) KOREAN
+ko-commands-home: "home"
+ko-commands-sethome: "sethome"
+ko-commands-sellhome: "sellhome"
+ko-commands-givehome: "givehome"
+ko-commands-buyhome: "buyhome"
+ko-commands-homlist: "homelist"
+ko-commands-rent: "rent"
+ko-commands-invite: "invite"
+ko-commands-invite-help: "/invite <유저명> - 집을 공유합니다"
+ko-commands-inviteout: "inviteout"
+ko-commands-inviteclear: "inviteclear"
+ko-commands-invitelist: "invitelist"
+ko-commands-welcome: "welcome"
+ko-commands-shambhala: "sh"
+ko-commands-sh-whiteworld: "whiteworld"
+ko-commands-sh-make: "make"
+ko-commands-sh-cancel: "cancel"
+ko-commands-sh-cancel-help: "설정을 취소했습니다."
+ko-commands-sh-cancel-fail: "진행중인 설정이 없습니다."
+ko-commands-sh-delete: "delete"
+ko-commands-sh-protect: "protect"
+ko-commands-sh-pvp: "pvp"
+ko-commands-sh-allow: "allow"
+ko-commands-sh-forbid: "forbid"
+ko-commands-sh-homelimit: "homelimit"
+ko-commands-sh-economy: "economy"
+ko-commands-sh-homeprice: "homeprice"
+ko-commands-sh-message: "message"
+ko-commands-sh-help: "help"
+ko-commands-welcome-help: "/welcome <메시지> - 환영메시지를 설정합니다"
+ko-block-change-denied: "이 구역은 지형수정이 금지되어있습니다"
+ko-block-active-denied: "이 블록은 사용이 금지되어 있습니다"
+ko-whiteworld-change-denied: "이 구역은 지형수정이 금지되어있습니다 (*화이트월드)"
+ko-complete-pos1: "pos1이 선택되었습니다"
+ko-complete-pos2: "pos2가 선택되었습니다"
+ko-complete-pos-msg1: "영역을 만드시려면 /sa make 를"
+ko-complete-pos-msg2: "작업을 중지하려면 /sa cancel 을 써주세요"
+ko-welcome-home-sir: "집에 오신 것을 환영합니다 !"
+ko-welcome-home-master: "환영합니다, 관리자님 (해당 영역 수정가능)"
+ko-please-set-to-welcome-msg: "( /welcome 으로 환영메시지 설정가능 ! )"
+ko-here-is-op-land: "운영진이 관리중인 영역입니다 : "
+ko-here-is: "이 영역은 "
+ko-his-land: "님의 영역입니다."
+ko-you-can-buy-here: "이 영역은 구매 가능합니다, 가격 : "
+ko-show-buy-command: "(/buyhome)"
+ko-here-is-pvp-not-allow: "이 영역에선 PVP가 허용되지 않습니다 !"
+ko-only-in-game: "인게임 내에서만 사용가능 합니다"
+ko-no-more-buying-home: "집을 최대치 만큼 보유하고있습니다 - 집설정불가 !"
+
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/Personal/tree/master/HmHmmHm/Shambhala_Float/resources/message.yml

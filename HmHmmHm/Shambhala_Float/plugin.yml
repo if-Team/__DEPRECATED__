@@ -1,0 +1,31 @@
+name: Shambhala_Float
+main: Shambhala_Float\Shambhala_Float
+version: 1.0-non-alpha
+author: hm
+api: [1.4.1]
+
+permissions:
+ shambhala.commands.home:
+  default: true
+ shambhala.commands.sethome:
+  default: true
+ shambhala.commands.buyhome:
+  default: true
+ shambhala.commands.givehome:
+  default: true
+ shambhala.commands.homelist:
+  default: true
+ shambhala.commands.rent:
+  default: true
+ shambhala.commands.invite:
+  default: true
+ shambhala.commands.inviteout:
+  default: true
+ shambhala.commands.inviteclear:
+  default: true
+ shambhala.commands.invitelist:
+  default: true
+ shambhala.commands.welcome:
+  default: true
+ shambhala.commands.shambhala:
+  default: OP
