@@ -35,16 +35,24 @@ class ItemConsume extends PluginBase implements Listener {
 	}
 	public function onAir(BlockUpdateEvent $event) {
 		$block = $event->getBlock ();
-		if (isset ( $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] )) if ($block->getId () == Block::AIR) foreach ( $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] ["drop"] as $drop )
-			if ($drop [2] > 0) {
-						$this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"]["player"]->getInventory()->addItem(Item::get(...$drop))
+		if (isset ( $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] ))
+			if ($block->getId () == Block::AIR)
+				foreach ( $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] ["drop"] as $drop )
+					if ($drop [2] > 0) {
+						if(isset($this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"]["player"]))
+							$this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"]["player"]->getInventory()->addItem(Item::get(...$drop));
+						unset ( $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] );
+
+						$x = $block->x + 0.5;
+						$y = $block->y + 0.5;
+						$z = $block->z + 0.5;
 						
-				;
-				unset ( $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] );
-			}
+						unset ( $this->itemQueue ["{$x}:{$y}:{$z}"] );
+					}
 	}
 	public function onBreak(BlockBreakEvent $event) {
-		if ($event->isCancelled ()) return;
+		if ($event->isCancelled ())
+			return;
 		
 		$player = $event->getPlayer ();
 		$block = $event->getBlock ();
@@ -68,7 +76,6 @@ class ItemConsume extends PluginBase implements Listener {
 					}
 				}
 			}
-			$tile->close ();
 		}
 		if ($event->getItem () instanceof Item) {
 			$event->getItem ()->useOn ( $block );
@@ -80,9 +87,7 @@ class ItemConsume extends PluginBase implements Listener {
 		if (! ($player instanceof Player)) {
 			foreach ( $drops as $drop ) {
 				if ($drop [2] > 0) {
-					$event->getBlock()->getLevel()->dropItem($event->getBlock()->add(0.5, 0.5, 0.5), Item::get(...$drop))
-					
-					;
+					$event->getBlock()->getLevel()->dropItem($event->getBlock()->add(0.5, 0.5, 0.5), Item::get(...$drop));
 				}
 			}
 		} else if ($player->isSurvival ()) {
