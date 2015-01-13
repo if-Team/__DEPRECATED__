@@ -35,18 +35,16 @@ class ItemConsume extends PluginBase implements Listener {
 	}
 	public function onAir(BlockUpdateEvent $event) {
 		$block = $event->getBlock ();
-		if (isset ( $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] ))
-			if ($block->getId () == Block::AIR)
-				foreach ( $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] ["drop"] as $drop )
-					if ($drop [2] > 0) {
+		if (isset ( $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] )) if ($block->getId () == Block::AIR) foreach ( $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] ["drop"] as $drop )
+			if ($drop [2] > 0) {
 						$this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"]["player"]->getInventory()->addItem(Item::get(...$drop))
-						;
-						unset ( $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] );
-					}
+						
+				;
+				unset ( $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] );
+			}
 	}
 	public function onBreak(BlockBreakEvent $event) {
-		if ($event->isCancelled ())
-			return;
+		if ($event->isCancelled ()) return;
 		
 		$player = $event->getPlayer ();
 		$block = $event->getBlock ();
@@ -83,6 +81,7 @@ class ItemConsume extends PluginBase implements Listener {
 			foreach ( $drops as $drop ) {
 				if ($drop [2] > 0) {
 					$event->getBlock()->getLevel()->dropItem($event->getBlock()->add(0.5, 0.5, 0.5), Item::get(...$drop))
+					
 					;
 				}
 			}
