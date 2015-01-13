@@ -1,0 +1,5 @@
+name: CreativeEconomy
+main: CreativeEconomy\CreativeEconomy
+version: 1.0-non-alpha
+author: hm
+api: [1.4.1]
