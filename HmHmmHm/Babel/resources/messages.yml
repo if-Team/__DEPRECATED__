@@ -1,0 +1,51 @@
+# IF YOU NEED A SOME OTHER LANGUAGE SETTINGS #
+# YOU SHOULD MODIFY THIS MESSAGE.YML FILE -! #
+
+#PLEASE SET HERE TO YOUR LANGUAGE PREFIX
+default-language: ko
+
+#(EN) ENGLISH
+
+#(KO) KOREAN
+ko-translate-command: 한글화
+ko-translate-command-description: PMMP서버를 한글화 합니다
+
+ko-translation:
+ Player.php:
+  "YELLOW": "DARK_AQUA"
+  "joined the game": "님이 접속 했습니다"
+  "has left the game": "님이 로그아웃 했습니다"
+  "Your gamemode has been changed to": "게임모드가 변경되었습니다"
+  "$this->server->getLogger()->warning($this->getName().\" moved wrongly!\");" : ""
+  "Incorrect protocol #": "일치하지 않는 프로토콜 #"
+  "\\preg_match('#^[a-zA-Z0-9_]{3,16}$#', $packet->username) == 0 or": ""
+  "Server is white-listed": " : 화이트리스트 적용 중"
+  "You are banned": " : 밴되어있습니다"
+  "Logged in from another location": " : 다른 위치에서 접속 시도"
+  "Invalid data": " : 잘못된 데이터"
+  "] logged in with entity id ": "] 님이 로그인하였습니다, 엔티티 아이디 "
+  "Kicked by admin.": "킥처리되었습니다"
+  "Reason:": "사유:"
+  "$this->server->broadcastMessage($ev->getQuitMessage());": ""
+  "] logged out due to": "] 님이 로그아웃했습니다"
+  "$message = $this->getName() . \" died\";": "$message = $this->getName() . \" 님이 사망했습니다\";"
+  "$message = $this->getName() . \" was killed by \" . $e->getName();": "$message = $this->getName() . \"님이 \" . $e->getName() . \"님에게 살해당했습니다\";"
+  "$message = $this->getName() . \" was slain by \" . $e->getName();": "$message = $this->getName() . \"님이 \" . $e->getName() . \"에게 살해당했습니다\";"
+  "$message = $this->getName() . \" was killed\";": "$message = $this->getName() . \"님이 살해당했습니다\";"
+  "$message = $this->getName() . \" was shot by \" . $e->getName();": "$message = $this->getName() . \"님이 \" . $e->getName() . \"저격당했습니다\";"
+  "$message = $this->getName() . \" was shot by arrow\";": "$message = $this->getName() . \"님이 저격당했습니다\";"
+  "$message = $this->getName() . \" fell out of the world\";": "$message = $this->getName() . \"님이 세상 밖으로 떨어져서 사망했습니다\";"
+  "$message = $this->getName() . \" fell from a high place\";": "$message = $this->getName() . \"님이 높은 곳에 떨어져서 사망했습니다\";"
+  "$message = $this->getName() . \" hit the ground too hard\";": "$message = $this->getName() . \"님이 너무 세게 땅에 부딪혀서 사망했습니다\";"
+  "$message = $this->getName() . \" suffocated in a wall\";": "$message = $this->getName() . \"님이 압사했습니다\";"
+  "$message = $this->getName() . \" tried to swim in lava\";": "$message = $this->getName() . \"님이 용암에 빠져 사망했습니다\";"
+  "$message = $this->getName() . \" went up in flames\";": "$message = $this->getName() . \"님이 불길에 죽었습니다\";"
+  "$message = $this->getName() . \" burned to death\";": "$message = $this->getName() . \"님이 불에타서 죽었습니다\";"
+  "$message = $this->getName() . \" drowned\";": "$message = $this->getName() . \"님이 익사했습니다\";"
+  "$message = $this->getName() . \" was pricked to death\";": "$message = $this->getName() . \"님이 가시에 찔려서 사망했습니다\";"
+  
+
+
+
+# AND YOU CAN PROVIDE YOUR TRANSLATION       #
+# https://github.com/if-Team/Personal/tree/master/HmHmmHm/Babel/resources/message.yml
