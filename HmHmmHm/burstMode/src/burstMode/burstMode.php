@@ -19,7 +19,7 @@ use pocketmine\event\entity\EntityDespawnEvent;
 use pocketmine\event\entity\EntityShootBowEvent;
 use pocketmine\item\Item;
 
-class burstMode extends PluginBase implements Listener { // spl_object_hash
+class burstMode extends PluginBase implements Listener {
 	public $object_hash = [ ];
 	public function onEnable() {
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
@@ -66,9 +66,9 @@ class burstMode extends PluginBase implements Listener { // spl_object_hash
 						new Double ( "", $player->y + $player->getEyeHeight () ),
 						new Double ( "", $player->z ) ] ),
 				"Motion" => new Enum ( "Motion", [ 
-						new Double ( "", -\sin ( $player->yaw / 180 * M_PI ) * \cos ( $player->pitch / 180 * M_PI ) ),
-						new Double ( "", -\sin ( $player->pitch / 180 * M_PI ) ),
-						new Double ( "", \cos ( $player->yaw / 180 * M_PI ) * \cos ( $player->pitch / 180 * M_PI ) ) ] ),
+						new Double ( "", - \sin ( $player->yaw / 180 * M_PI ) *\cos ( $player->pitch / 180 * M_PI ) ),
+						new Double ( "", - \sin ( $player->pitch / 180 * M_PI ) ),
+						new Double ( "",\cos ( $player->yaw / 180 * M_PI ) *\cos ( $player->pitch / 180 * M_PI ) ) ] ),
 				"Rotation" => new Enum ( "Rotation", [ 
 						new Float ( "", $player->yaw ),
 						new Float ( "", $player->pitch ) ] ) ] );
@@ -76,9 +76,16 @@ class burstMode extends PluginBase implements Listener { // spl_object_hash
 		$f = 1.5;
 		$snowball = Entity::createEntity ( "Snowball", $player->chunk, $nbt, $player );
 		$snowball->setMotion ( $snowball->getMotion ()->multiply ( $f ) );
-		$this->getServer ()->getPluginManager ()->callEvent ( $projectileEv = new ProjectileLaunchEvent ( $snowball ) );
-		if ($projectileEv->isCancelled ()) {
-			$snowball->kill ();
+		
+		if ($snowball instanceof Projectile) {
+			$this->server->getPluginManager ()->callEvent ( $projectileEv = new ProjectileLaunchEvent ( $snowball ) );
+			if ($projectileEv->isCancelled ()) {
+				$snowball->kill ();
+			} else {
+				
+				$this->object_hash [spl_object_hash ( $snowball )] = 1;
+				$snowball->spawnToAll ();
+			}
 		} else {
 			$this->object_hash [spl_object_hash ( $snowball )] = 1;
 			$snowball->spawnToAll ();
@@ -93,9 +100,9 @@ class burstMode extends PluginBase implements Listener { // spl_object_hash
 							new Double ( "", $player->y + $player->getEyeHeight () ),
 							new Double ( "", $player->z ) ] ),
 					"Motion" => new Enum ( "Motion", [ 
-							new Double ( "", - \sin ( $player->yaw / 180 * M_PI ) *\cos ( $player->pitch / 180 * M_PI ) ),
-							new Double ( "", - \sin ( $player->pitch / 180 * M_PI ) ),
-							new Double ( "",\cos ( $player->yaw / 180 * M_PI ) *\cos ( $player->pitch / 180 * M_PI ) ) ] ),
+							new Double ( "", -\sin ( $player->yaw / 180 * M_PI ) * \cos ( $player->pitch / 180 * M_PI ) ),
+							new Double ( "", -\sin ( $player->pitch / 180 * M_PI ) ),
+							new Double ( "", \cos ( $player->yaw / 180 * M_PI ) * \cos ( $player->pitch / 180 * M_PI ) ) ] ),
 					"Rotation" => new Enum ( "Rotation", [ 
 							new Float ( "", $player->yaw ),
 							new Float ( "", $player->pitch ) ] ) ] );
@@ -113,9 +120,11 @@ class burstMode extends PluginBase implements Listener { // spl_object_hash
 					if ($projectileEv->isCancelled ()) {
 						$ev->getProjectile ()->kill ();
 					} else {
+						$this->object_hash [spl_object_hash ( $snowball )] = 1;
 						$ev->getProjectile ()->spawnToAll ();
 					}
 				} else {
+					$this->object_hash [spl_object_hash ( $snowball )] = 1;
 					$ev->getProjectile ()->spawnToAll ();
 				}
 			}
