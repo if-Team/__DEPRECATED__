@@ -27,10 +27,17 @@ class ItemConsume extends PluginBase implements Listener {
 		$vec = "{$e->x}:{$e->y}:{$e->z}";
 		if (isset ( $this->itemQueue [$vec] )) {
 			unset ( $this->itemQueue [$vec] );
+			
 			$reflection_class = new \ReflectionClass ( $e );
-			$property = $reflection_class->getProperty ( 'age' );
-			$property->setAccessible ( true );
-			$property->setValue ( $event->getEntity (), 7000 );
+			
+			foreach ($reflection_class->getProperties() as $properties){
+				if($properties->getName() == 'age'){
+					$property = $reflection_class->getProperty ( 'age' );
+					$property->setAccessible ( true );
+					if($property->getValue($event->getEntity ()) == 0)
+						$property->setValue ( $event->getEntity (), 7000 );
+				}
+			}
 		}
 	}
 	public function onAir(BlockUpdateEvent $event) {
@@ -42,13 +49,13 @@ class ItemConsume extends PluginBase implements Listener {
 						if(isset($this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"]["player"]))
 							$this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"]["player"]->getInventory()->addItem(Item::get(...$drop));
 						unset ( $this->breakQueue ["{$block->x}:{$block->y}:{$block->z}"] );
-
-						$x = $block->x + 0.5;
-						$y = $block->y + 0.5;
-						$z = $block->z + 0.5;
-						
-						unset ( $this->itemQueue ["{$x}:{$y}:{$z}"] );
+						return;
 					}
+			$x = $block->x + 0.5;
+			$y = $block->y + 0.5;
+			$z = $block->z + 0.5;
+				
+			unset ( $this->itemQueue ["{$x}:{$y}:{$z}"] );
 	}
 	public function onBreak(BlockBreakEvent $event) {
 		if ($event->isCancelled ())
