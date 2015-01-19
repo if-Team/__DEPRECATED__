@@ -19,19 +19,15 @@ use pocketmine\command\Command;
 use pocketmine\Player;
 use pocketmine\utils\TextFormat;
 use pocketmine\event\player\PlayerJoinEvent;
+use pocketmine\entity\Creature;
 
-// SoldierGame enable
-// SoldierGame disable
-// SoldierGame explode
-// SoldierGame broadcast
 class SoldierGame extends PluginBase implements Listener {
 	public $config, $config_Data;
 	public function onEnable() {
 		$this->config = new Config ( $this->getDataFolder () . "gameData.yml", Config::YAML, [ 
 				"enable-soldiergame" => 1,
 				"enable-explode" => 1,
-				"enable-broadcast" => 1 
-		] );
+				"enable-broadcast" => 1 ] );
 		$this->config_Data = $this->config->getAll ();
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
 	}
@@ -41,8 +37,7 @@ class SoldierGame extends PluginBase implements Listener {
 	}
 	public function onCommand(CommandSender $sender, Command $command, $label, Array $args) {
 		if (strtolower ( $command->getName () ) == "soldiergame") {
-			if (! $sender->hasPermission ( "soldiergame" ))
-				return false;
+			if (! $sender->hasPermission ( "soldiergame" )) return false;
 			if (! isset ( $args [0] )) {
 				$this->onHelp ( $sender );
 				return true;
@@ -77,15 +72,12 @@ class SoldierGame extends PluginBase implements Listener {
 				case "score" :
 					if (isset ( $args [1] )) {
 						if (isset ( $this->config_Data [$args [1]] )) {
-							// 검색결과표시
 							$score = "(K" . $this->config_Data [$args [1]] ["kill"] . "/D" . $this->config_Data [$args [1]] ["death"] . ")";
 							$sender->sendMessage ( TextFormat::DARK_AQUA . "[SoldierGame] $args[1] - " . $score );
 						} else {
-							// 전적을 찾을 수없음
 							$sender->sendMessage ( TextFormat::DARK_AQUA . "[SoldierGame] $args[1] - 전적을 찾을 수 없습니다." );
 						}
 					} else {
-						// 본인전적표시
 						if (isset ( $this->config_Data [$sender->getName ()] )) {
 							$score = "(K" . $this->config_Data [$sender->getName ()] ["kill"] . "/D" . $this->config_Data [$sender->getName ()] ["death"] . ")";
 							$sender->sendMessage ( TextFormat::DARK_AQUA . "[SoldierGame] " . $sender->getName () . " - " . $score );
@@ -125,53 +117,50 @@ class SoldierGame extends PluginBase implements Listener {
 	public function checkEnableBroadcast() {
 		return ( bool ) $this->config_Data ["enable-broadcast"];
 	}
-	public function SoldierGame(Entity $entity) {
-		if ($this->checkEnableSoldierGame ())
-			$this->shockWave ( $entity->x, $entity->y, $entity->z, 5, 5, $entity->shootingEntity );
-	}
 	public function SnowballExplode(EntityDespawnEvent $event) {
-		if ($event->getType () == 81 and $this->checkEnableExplode ()) {
-			$this->SoldierGame ( $event->getEntity () );
-		}
+		if ($event->getType () == 81 and $this->checkEnableExplode ()) $this->SoldierGame ( $event->getEntity () );
 	}
-	public function SnowballDamage(ProjectileHitEvent $event) {
-		if ($event->getEntity () instanceof Snowball) {
-			$this->SoldierGame ( $event->getEntity () );
-		}
+	public function SoldierGame(Entity $entity) {
+		if ($this->checkEnableSoldierGame () and $entity->shootingEntity instanceof Player) $this->shockWave ( $entity->x, $entity->y, $entity->z, 5, 5, $entity->shootingEntity );
 	}
 	public function blockBreak(BlockBreakEvent $event) {
 		$player = $event->getPlayer ();
 		$block = $event->getBlock ();
 		
-		if ($block->getId () == Block::SNOW_LAYER or $block->getId () == Block::SNOW_BLOCK)
-			$player->getInventory ()->addItem ( Item::get ( Item::SNOWBALL, 0, 4 ) );
+		if ($block->getId () == Block::SNOW_LAYER or $block->getId () == Block::SNOW_BLOCK) $player->getInventory ()->addItem ( Item::get ( Item::SNOWBALL, 0, 4 ) );
 	}
-	public function shockWave($x, $y, $z, $radius, $damage, $murder) {
+	public function shockWave($x, $y, $z, $radius, $damage, Player $murder) {
 		$exp = new ExplodePacket ();
 		$exp->x = $x;
 		$exp->y = $y;
 		$exp->z = $z;
 		$exp->radius = 32;
-		foreach ( $this->getServer ()->getOnlinePlayers () as $victim ) {
+		foreach ( $murder->getLevel ()->getEntities () as $victim ) {
+			if (! $victim instanceof Creature) return;
 			$cx = abs ( $x - $victim->x );
 			$cz = abs ( $z - $victim->z );
-			if ($cx <= 20 and $cz <= 20) {
+			if ($victim instanceof Player and $cx <= 20 and $cz <= 20) {
 				$victim->directDataPacket ( $exp );
 			}
 			if ($cx <= $radius and $cz <= $radius) {
-				if ($victim->getHealth () <= 0) {
-					if ($this->checkEnableBroadcast ())
-						$this->KillUpdate ( $murder, $victim );
-				}
 				$victim->attack ( $damage, EntityDamageEvent::CAUSE_ENTITY_ATTACK );
+				if ($victim->getHealth () <= 0) {
+					if ($this->checkEnableBroadcast ()) $this->killUpdate ( $murder, $victim );
+				}
 			}
 		}
 	}
 	public function killUpdate($murder, $victim) {
+		if ($victim->getName () == null) return;
+		if ($victim == $murder) return;
 		$this->config_Data [$murder->getName ()] ["kill"] ++;
-		$this->config_Data [$victim->getName ()] ["death"] ++;
+		if ($victim instanceof Player) $this->config_Data [$victim->getName ()] ["death"] ++;
 		$mi = "(K" . $this->config_Data [$murder->getName ()] ["kill"] . "/D" . $this->config_Data [$murder->getName ()] ["death"] . ")";
-		$vi = "(K" . $this->config_Data [$victim->getName ()] ["kill"] . "/D" . $this->config_Data [$victim->getName ()] ["death"] . ")";
+		if ($victim instanceof Player) {
+			$vi = "(K" . $this->config_Data [$victim->getName ()] ["kill"] . "/D" . $this->config_Data [$victim->getName ()] ["death"] . ")";
+		} else {
+			$vi = "";
+		}
 		foreach ( $this->getServer ()->getOnlinePlayers () as $player ) {
 			if ($player == $murder) {
 				$player->sendMessage ( TextFormat::RED . $victim->getName () . $vi . "님을 살해 하셨습니다 ! " );

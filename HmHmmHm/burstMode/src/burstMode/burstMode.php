@@ -19,7 +19,7 @@ use pocketmine\event\entity\EntityDespawnEvent;
 use pocketmine\event\entity\EntityShootBowEvent;
 use pocketmine\item\Item;
 
-class burstMode extends PluginBase implements Listener {
+class burstMode extends PluginBase implements Listener { // spl_object_hash
 	public $object_hash = [ ];
 	public function onEnable() {
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this, $this );
@@ -120,11 +120,11 @@ class burstMode extends PluginBase implements Listener {
 					if ($projectileEv->isCancelled ()) {
 						$ev->getProjectile ()->kill ();
 					} else {
-						$this->object_hash [spl_object_hash ( $snowball )] = 1;
+						$this->object_hash [spl_object_hash ( $ev->getProjectile () )] = 1;
 						$ev->getProjectile ()->spawnToAll ();
 					}
 				} else {
-					$this->object_hash [spl_object_hash ( $snowball )] = 1;
+					$this->object_hash [spl_object_hash ( $ev->getProjectile () )] = 1;
 					$ev->getProjectile ()->spawnToAll ();
 				}
 			}
