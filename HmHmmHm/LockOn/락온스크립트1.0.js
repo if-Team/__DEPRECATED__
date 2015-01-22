@@ -3,10 +3,15 @@ var root = new java.io.File(android.os.Environment.getExternalStorageDirectory()
 
 function runOnThread(func){
 	new java.lang.Thread({run: func}).start();
-};
+}
 
 function runOnUiThread(func){
 	ctx.runOnUiThread(new java.lang.Runnable({run: func}));
+}
+
+var Conditions = {
+		enabled: false,
+		activated: false
 };
 
 var Resources = {
@@ -29,6 +34,14 @@ var Resources = {
 				Resources.mediaPlayer.start();
 			}catch(e){
 				clientMessage("음악 파일 재생에 실패했습니다. \n" + e.getMessage());
+			}
+		},
+		
+		stopMusic: function(){
+			if(Resources.mediaPlayer.isPlaying()){
+				Resources.mediaPlayer.stop();
+				Resources.mediaPlayer.prepare();
+				Resources.mediaPlayer.seekTo(0);
 			}
 		},
 
@@ -72,7 +85,13 @@ var GUI = {
 				GUI.window = null;
 			}
 		});},
-
+		
+		setImage: function(drawable){runOnUiThread(function(){
+			if(GUI.imageViewA !== null){
+				GUI.imageViewA.setBackgroundDrawable(drawable);
+			}
+		});},
+		
 		createDrawable: function(drawableName){
 			var file = new java.io.File(root, drawableName);
 			if(file.exists() === false){
@@ -87,12 +106,14 @@ var GUI = {
 function init(){runOnThread(function(){
 	Resources.mediaPlayer = new android.media.MediaPlayer();
 
-	Resources.LOCKREADY = GUI.createDrawable("LOCKREADY.png");
-	Resources.NOSCREEN = GUI.createDrawable("NOSCREEN.png");
-
-	Resources.ANIMATED_DRAWABLE = new android.graphics.drawable.AnimationDrawable();
+	Resources.NONE = GUI.createDrawable("NOSCREEN.png");
+	Resources.READY = GUI.createDrawable("LOCKREADY.png");
+	
+	Resources.ACTIVE_ANIMATED = new android.graphics.drawable.AnimationDrawable();
+	Resources.ACTIVE_ANIMATED.setOneShot(true);
+	
 	for(var index = 0; index < 60; index++){
-		Resources.ANIMATED_DRAWABLE.addFrame(GUI.createDrawable("LOCKON/LOCK" + index + ".png"), 32);
+		Resources.ACTIVE_ANIMATED.addFrame(GUI.createDrawable("LOCKON/LOCK" + index + ".png"), 32);
 	}
 });}
 
@@ -105,16 +126,102 @@ function finalize(){
 
 
 
+function getCoordinateArray(ent){
+	return [Entity.getX(ent), Entity.getY(ent), Entity.getZ(ent)];
+}
+
 function killEntity(ent){
 	Entity.setHealth(ent, 1);
 	Entity.setFireTicks(ent, 15);
 
-	var blockId = Level.getTile(Entity.getX(ent), Entity.getY(ent), Entity.getZ(ent));
+	var blockId = Level.getTile.apply(null, getCoordinateArray(ent));
 	if(Entity.getEntityTypeId(ent) === 36 || (blockId === 8 || blockId === 9)){
 		Entity.setHealth(ent, 0);
 	}
 
 	Level.playSound(Entity.getX(ent), Entity.getY(ent), Entity.getZ(ent), "random.explode", 2, 1);
+}
+
+function isCloseArray(a, b, length){
+	return Math.abs(a[0] - b[0]) < length &&
+		Math.abs(a[1] - b[1]) < length &&
+		Math.abs(a[2] - b[2]) < length;
+}
+
+function getLookingEntity(){
+	var radian =  1 / 180 * Math.PI;
+	var player = Player.getEntity();
+	
+	var centerX = Entity.getX(player),
+		centerY = Entity.getY(player),
+		centerZ = Entity.getZ(player);
+	
+	var yaw = Entity.getYaw(player),
+		pitch = Entity.getPitch(player);
+	
+	for(var radius = 0; radius < 64; radius++){
+		var coordinate = [ 
+			Math.floor(centerX + radius * -Math.sin(yaw * radian) * Math.cos(pitch * radian)),
+			Math.floor(centerY + radius * -Math.sin(pitch * radian)),
+			Math.floor(centerZ + radius * Math.cos(yaw * radian) * Math.cos(pitch * radian))
+		];
+		
+		var entites = Entity.getAll();
+		
+		for(var i = 0; i < entites.length; i++){
+			if(entites[i] !== player && isClose(getCoordinateArray(entites[i]), coordinate, 2)){
+				return entites[i];
+			}
+		}
+	}
+	return null;
+}
+
+function onTick(){
+	var enabled = (Player.getCarriedItem() === 261);
+
+	if(Conditions.enabled === true && enabled === false){ //READY -> NONE
+		Resources.stopMusic();
+		GUI.setImage(Resources.NONE);
+		Resources.ACTIVE_ANIMATED.stop();
+
+		Conditions.enabled = enabled;
+		Conditions.activated = false;
+	}else if(Conditions.enabled === false && enabled === true){ //NONE -> READY
+		Resources.startMusic();
+		GUI.setImage(Resources.READY);
+
+		Conditions.enabled = enabled;
+		Conditions.activated = false;
+	}else{
+		var looking = getLookingEntity();
+		var activated = looking !== null;
+
+		if(Conditions.activated === false && activated === true){ //READY -> ACTIVE
+			GUI.setImage(Resources.ACTIVE_ANIMATED);
+			Resources.ACTIVE_ANIMATED.start();
+
+			Conditions.activated = activated;
+		}else if(Conditions.activated === true && activated === false){ //ACTIVE -> READY
+			Resources.ACTIVE_ANIMATED.stop();
+			GUI.setImage(Resources.READY);
+
+			Conditions.activated = activated;
+		}
+	}
+}
+
+function onArrowShot(ent){
+	if(isClose(getCoordinateArray(ent), getCoordinateArray(Player.getEntity*()), 2) === false){
+		//플레이어와 2블럭 이상 떨어진 곳에서 스폰된 화살은 무시
+		return;
+	}
+	
+	var looking = getLookingEntity();
+	if(looking !== null){
+		Entity.remove(ent);
+		killEntity(looking);
+	}
 }
 
 
@@ -127,4 +234,14 @@ function newLevel(){
 
 function leaveGame(){
 	finalize();
+}
+
+function modTick(){
+	onTick();
+}
+
+function entityAddedHook(ent){
+	if(Entity.getEntityTypeId(ent) == 80){
+		onArrowShot(ent);
+	}
 }
