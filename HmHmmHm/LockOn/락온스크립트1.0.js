@@ -1,5 +1,5 @@
 var ctx = com.mojang.minecraftpe.MainActivity.currentMainActivity.get();
-var root = new java.io.File(android.os.Environment.getExternalStorageDirectory().getAbsoluteFile(), "games/com.mojang/minecraftResource/LOCK1.0");
+var root = new java.io.File(android.os.Environment.getExternalStorageDirectory().getAbsoluteFile(), "games/com.mojang/minecraftResources/LOCK2.0");
 
 function runOnThread(func){
 	new java.lang.Thread({run: func}).start();
@@ -98,8 +98,12 @@ var GUI = {
 				clientMessage("이미지 파일이 존재하지 않습니다.");
 				return null;
 			}
-
-			return android.graphics.drawable.Drawable.createFromPath(file.getAbsolutePath());
+			
+			try{
+				return android.graphics.drawable.Drawable.createFromPath(file.getAbsolutePath());
+			}catch(e){
+				clientMessage("이미지 로드에 실패했습니다. \n" + e.getMessage());
+			}
 		}
 };
 
