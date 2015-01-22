@@ -115,6 +115,10 @@ function init(){runOnThread(function(){
 	for(var index = 0; index < 60; index++){
 		Resources.ACTIVE_ANIMATED.addFrame(GUI.createDrawable("LOCKON/LOCK" + index + ".png"), 32);
 	}
+	
+	runOnUiThread(function(){
+		android.widget.Toast.makeText(ctx, "© 2014 ChalkPE. All rights reserved.", 1).show();
+	});
 });}
 
 function finalize(){
@@ -212,7 +216,7 @@ function onTick(){
 }
 
 function onArrowShot(ent){
-	if(isClose(getCoordinateArray(ent), getCoordinateArray(Player.getEntity*()), 2) === false){
+	if(isClose(getCoordinateArray(ent), getCoordinateArray(Player.getEntity()), 2) === false){
 		//플레이어와 2블럭 이상 떨어진 곳에서 스폰된 화살은 무시
 		return;
 	}
