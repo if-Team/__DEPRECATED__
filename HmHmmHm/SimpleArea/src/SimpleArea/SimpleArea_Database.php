@@ -227,7 +227,7 @@ class SimpleArea_Database {
 		foreach ( $this->yml [$id] ["option"] as $getoption ) {
 			$go = explode ( ":", $getoption );
 			if ($io [0] == $go [0]) {
-				if (! isset ( $io [1] )) return true;
+				if (! isset ( $io [1] ) or ! isset ( $go [1] )) return true;
 				if ($io [1] == $go [1]) return true;
 			}
 		}
