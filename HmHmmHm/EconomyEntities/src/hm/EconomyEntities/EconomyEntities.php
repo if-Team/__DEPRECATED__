@@ -61,16 +61,6 @@ class EconomyEntities extends PluginBase implements Listener {
 	public $move_pk;
 	public $damage_delay = [ ];
 	public $dead_id = [ ];
-	public $villager_item = [ 
-			Item::WOOD,
-			Item::WORKBENCH,
-			Item::SNOW,
-			Item::CLAY,
-			Item::HAY_BALE,
-			Item::SIGN,
-			Item::MELON_SLICE,
-			Item::COOKED_PORKCHOP,
-			Item::WOODEN_AXE ];
 	public function onEnable() {
 		@mkdir ( $this->getDataFolder () );
 		$this->initMessage ();
