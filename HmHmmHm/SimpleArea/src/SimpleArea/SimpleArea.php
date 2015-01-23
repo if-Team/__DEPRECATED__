@@ -61,7 +61,7 @@ class SimpleArea extends PluginBase implements Listener {
 		$this->config_Data = $this->config->getAll ();
 		
 		foreach ( $this->getServer ()->getLevels () as $level )
-			$this->db [$level->getFolderName ()] = new SimpleArea_Database ( $this->getServer ()->getDataPath () . "worlds\\" . $level->getFolderName () . "\\protects.yml", $level, $this->config_Data ["default-wall-type"] );
+			$this->db [$level->getFolderName ()] = new SimpleArea_Database ( $this->getServer ()->getDataPath () . "worlds/" . $level->getFolderName () . "/", $level, $this->config_Data ["default-wall-type"] );
 		
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
 				$this,
@@ -99,7 +99,7 @@ class SimpleArea extends PluginBase implements Listener {
 	}
 	public function onLevelLoad(LevelLoadEvent $event) {
 		$level = $event->getLevel ();
-		$this->db [$level->getFolderName ()] = new SimpleArea_Database ( $this->getServer ()->getDataPath () . "worlds\\" . $level->getFolderName () . "\\protects.yml", $level, $this->config_Data ["default-wall-type"] );
+		$this->db [$level->getFolderName ()] = new SimpleArea_Database ( $this->getServer ()->getDataPath () . "worlds/" . $level->getFolderName () . "/", $level, $this->config_Data ["default-wall-type"] );
 	}
 	public function onLevelUnload(LevelUnloadEvent $event) {
 		$this->db [$event->getLevel ()->getFolderName ()]->save ();

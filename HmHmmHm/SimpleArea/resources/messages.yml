@@ -92,7 +92,7 @@ ko-protect-if-you-stop-protect-use-cancel: "개별영역설정을 중단하려�
 ko-protect-overlap-area-exist: "해당영역에 중복되는 영역이 감지되었습니다!"
 ko-protect-have-you-need-overlap-clear: "겹치는 영역설정들을 삭제하고 이 영역을 생성할까요?"
 ko-protect-sa-make-or-sa-cancel: "( 예:/sa make 아니요: /sa cancel )"
-ko-protect-sa-overlap-area-deleted:"번 영역을 삭제했습니다."
+ko-protect-sa-overlap-area-deleted: "번 영역을 삭제했습니다."
 ko-protect-failed: "처리되지않은 중복영역이 있습니다. <생성실패>"
 ko-protect-area-created: "번 영역을 생성했습니다."
 ko-protect-sa-protect-possible: "/sa protect 로 보호여부를 설정가능"
