@@ -1,302 +1,288 @@
-var sdcardPath = android.os.Environment.getExternalStorageDirectory().getAbsolutePath();
-var LockOnPath = sdcardPath + "/games/com.mojang/minecraftResource/LOCK1.0/";
-
-var mPlayer = 0;
-
-var LockonEnable = 0;
-var before_Detective = 0;
-var Detective = 0;
-var SoundPlaying = 0;
-
-var lock_x = 0;
-var lock_y = 0;
-var lock_z = 0;
-var ldelay = 0;
-
-var LOCKON_PAGE = 0;
-var lockon_delay = 0;
-
-var mobis = 0;
-var imageViewA = 0;
-
-var mobs = new Array();
 var ctx = com.mojang.minecraftpe.MainActivity.currentMainActivity.get();
+var root = new java.io.File(android.os.Environment.getExternalStorageDirectory().getAbsoluteFile(), "games/com.mojang/minecraftResources/LOCK2.0");
 
-function LOOK_XYZ(){
-	px = Math.floor(getPlayerX());
-	py = Math.floor(getPlayerY());
-	pz = Math.floor(getPlayerZ());
-	pe = getPlayerEnt();
-	yaw = Math.floor(getYaw());
-	pitch = Math.floor(getPitch());
-	sin = -Math.sin(yaw / 180 * Math.PI);
-	cos = Math.cos(yaw / 180 * Math.PI);
-	tan = -Math.sin(pitch / 180 * Math.PI);
-	pcos = Math.cos(pitch / 180 * Math.PI);
-	
-	look_x = Math.floor(px + ep * sin * pcos);
-	look_y = Math.floor(py + ep * tan);
-	look_z = Math.floor(pz + ep * cos * pcos);
+var tick = 10;
 
-	return [look_x, look_y, look_z];
+function runOnThread(func){
+	new java.lang.Thread({run: func}).start();
 }
 
-
-function LOCKON() {
-	var detect = 0;
-	var LOCK_XYZ = LOOK_XYZ();
-	var X=0, Y=1, Z=2;
-	
-	for (var ep = 0; ep <= 100; ep++) {
-		if (Level.getTile(LOCK_XYZ[X], LOCK_XYZ[Y], LOCK_XYZ[Z]) != 0) {
-			detect = 1;
-			break;
-		} else {
-			detect = 0;
-			Detective = 0;
-		}
-	}
-	if (detect == 1) {
-		mobis = 0;
-		for (var i = 0; i < mobs.length; i++) {
-			if (Math.floor(Math.abs(LOCK_XYZ[X] - Entity.getX(mobs[i]))) <= 2)
-				if (Math.floor(Math.abs(LOCK_XYZ[Y] - Entity.getY(mobs[i]))) <= 3)
-					if (Math.floor(Math.abs(LOCK_XYZ[Z] - Entity.getZ(mobs[i]))) <= 2) {
-						if (pe != mobs[i])
-							mobis = mobs[i];
-						break;
-					}
-		}
-		if (mobis != 0)
-			Detective = 1;
-		else
-			Detective = 0;
-	}
+function runOnUiThread(func){
+	ctx.runOnUiThread(new java.lang.Runnable({run: func}));
 }
 
-function newLevel() {
-	mPlayer = new android.media.MediaPlayer();
-}
+var Conditions = {
+		enabled: false,
+		activated: false
+};
 
-function modTick() {
-	if (ldelay == 0) {
-		scaledbitmap_ready = decodePNG(LockOnPath, "LOCKREADY.png");
-		noscreen = decodePNG(LockOnPath, "NOSCREEN.png");
+var Resources = {
+		mediaPlayer: null,
 
-		setGUI(1, noscreen);
-		ldelay++;
-	}
-	if (getCarriedItem() == 261) {
-		if (LockonEnable != 1) {
-			changeGUI(scaledbitmap_ready);
-			LockonEnable = 1;
-		}
-	} else {
-		if (LockonEnable != 0) {
-			changeGUI(noscreen);
-			LockonEnable = 0;
-		}
-	}
-
-	if (LockonEnable == 1)
-		LOCKON();
-	if (before_Detective != Detective) {
-		if (LockonEnable == 1 && Detective == 1) {
-			//LOCKON_PAGE
-			scaledbitmap_on = decodePNG(LockOnPath + "LOCKON/", "LOCK" + LOCKON_PAGE + ".png");
-			changeGUI(scaledbitmap_on);
-			if (LOCKON_PAGE <= 59)
-				LOCKON_PAGE++;
-
-			setBGM("lockon.mp3", LockOnPath);
-			SoundPlaying = 1;
-		}
-		if (LockonEnable == 1 && Detective == 0) {
-			if (mPlayer.isPlaying())
-				mPlayer.pause();
-			changeGUI(scaledbitmap_ready);
-			SoundPlaying = 0;
-			LOCKON_PAGE = 0;
-		}
-	}
-	if (before_Detective == Detective) {
-		if (LockonEnable == 1 && Detective == 1) {
-			if (lockon_delay == 10) {
-				scaledbitmap_on = decodePNG(LockOnPath + "LOCKON/", "LOCK" + LOCKON_PAGE + ".png");
-				changeGUI(scaledbitmap_on);
-				lockon_delay = 0;
+		startMusic: function(musicName){
+			var file = new java.io.File(root, musicName);
+			if(file.exists() === false){
+				clientMessage("음악 파일이 존재하지 않습니다.");
+				return;
 			}
-			if (LOCKON_PAGE <= 59)
-				LOCKON_PAGE++;
-			lockon_delay++;
+
+			try{
+				if(Resources.mediaPlayer.isPlaying()){
+					Resources.mediaPlayer.pause();
+				}
+				Resources.mediaPlayer.reset();
+				Resources.mediaPlayer.setDataSource(file.getAbsolutePath());
+				Resources.mediaPlayer.prepare();
+				Resources.mediaPlayer.start();
+			}catch(e){
+				clientMessage("음악 파일 재생에 실패했습니다. \n" + e.getMessage());
+			}
+		},
+
+		stopMusic: function(){
+			if(Resources.mediaPlayer.isPlaying()){
+				Resources.mediaPlayer.stop();
+				Resources.mediaPlayer.prepare();
+				Resources.mediaPlayer.seekTo(0);
+			}
+		},
+
+		finishMusic: function(){
+			runOnUiThread(function(){
+				if(Resources.mediaPlayer !== null){
+					Resources.mediaPlayer.release();
+					Resources.mediaPlayer = null;
+				}
+			});
 		}
-	}
-	if (SoundPlaying == 1)
-		if (!(mPlayer.isPlaying()))
-			setBGM("lockon.mp3", LockOnPath);
-	before_Detective = Detective;
+};
 
-	if (SoundPlaying == 1 && getCarriedItem() != 261) {
-		before_Detective = 0;
-		Detective = 0;
-		SoundPlaying = 0;
-		if (mPlayer.isPlaying())
-			mPlayer.pause();
-	}
-}
+var GUI = {
+		window: null,
+		imageViewA: null,
 
-function leaveGame() {
-	LockonEnable = 0;
-	before_Detective = 0;
-	Detective = 0;
-	ldelay = 0;
-	endGUI();
-	endBGM();
-}
+		create: function(){runOnUiThread(function(){
+			try{
+				var layout = new android.widget.FrameLayout(ctx);
+				layout.setLayoutParams(new android.widget.FrameLayout.LayoutParams(android.widget.FrameLayout.LayoutParams.MATCH_PARENT, android.widget.FrameLayout.LayoutParams.MATCH_PARENT));
 
-function entityAddedHook(ent) {
-	var ID = Entity.getEntityTypeId(ent);
-	var mob_data = [10, 11, 12, 13, 32, 33, 34, 35, 36];
+				GUI.imageViewA = new android.widget.ImageView(ctx);
+				GUI.imageViewA.setLayoutParams(new android.widget.FrameLayout.LayoutParams(android.widget.FrameLayout.LayoutParams.MATCH_PARENT, android.widget.FrameLayout.LayoutParams.MATCH_PARENT));
 
-	if (mob_data.indexOf(ID) != -1)
-		mobs.push(ent)
+				layout.addView(GUI.imageViewA);
 
-		if (ID == 80) {
-			if (LockonEnable == 1 && Detective == 1) {
-				Entity.setHealth(mobis, 1);
-				Entity.setFireTicks(mobis, 15);
-				if (Level.getTile(Entity.getX(mobis), Entity.getY(mobis), Entity.getZ(mobis)) == 8)
-					Entity.setHealth(mobis, 0);
-				if (Level.getTile(Entity.getX(mobis), Entity.getY(mobis), Entity.getZ(mobis)) == 9)
-					Entity.setHealth(mobis, 0);
-				if (ID == 36)
-					Entity.setHealth(mobis, 0);
-				Level.playSound(Entity.getX(mobis), Entity.getY(mobis), Entity.getZ(mobis), "random.explode", 2, 1);
-				mobis = 0;
-				Entity.remove(ent);
+				GUI.window = new android.widget.PopupWindow(layout, ctx.getWindowManager().getDefaultDisplay().getWidth(), ctx.getWindowManager().getDefaultDisplay().getHeight(), true);
+				GUI.window.setTouchable(false);
+				GUI.window.setFocusable(false);
+				GUI.window.setOutsideTouchable(true);
+				GUI.window.showAtLocation(ctx.getWindow().getDecorView(), android.view.Gravity.CENTER, 0, 0);
+			}catch(e){
+				clientMessage("GUI 생성에 실패했습니다. \n" + e.getMessage());
+			}
+		});},
+
+		remove: function(){runOnUiThread(function(){
+			if(GUI.window !== null){
+				GUI.window.dismiss();
+				GUI.window = null;
+			}
+		});},
+
+		setImage: function(drawable){runOnUiThread(function(){
+			if(GUI.imageViewA !== null){
+				GUI.imageViewA.setBackgroundDrawable(drawable);
+			}
+		});},
+
+		createDrawable: function(drawableName){
+			var file = new java.io.File(root, drawableName);
+			if(file.exists() === false){
+				clientMessage("이미지 파일이 존재하지 않습니다.");
+				return null;
+			}
+
+			try{
+				/*var bitmap = android.graphics.BitmapFactory.decodeFile(file.getAbsolutePath());
+				var height = ctx.getWindowManager().getDefaultDisplay().getHeight();
+				var scale = height / bitmap.getHeight();
+				var width = scale * bitmap.getWidth(); //ctx.getWindowManager().getDefaultDisplay().getWidth();
+				
+				return new android.graphics.drawable.BitmapDrawable(android.graphics.Bitmap.createScaledBitmap(bitmap, width, height, true));
+				*/
+				return android.graphics.drawable.Drawable.createFromPath(file.getAbsolutePath());
+			}catch(e){
+				clientMessage("이미지 로드에 실패했습니다. \n" + e.getMessage());
 			}
 		}
-}
+};
 
-function entityRemovedHook(ent) {
-	var ID = Entity.getEntityTypeId(ent);
-	var mob_data = [10, 11, 12, 13, 32, 33, 34, 35, 36];
+function init(){runOnThread(function(){
+	Resources.mediaPlayer = new android.media.MediaPlayer();
 
-	if (mob_data.indexOf(ID) != -1) {
-		for (var i = 0; i < mobs.length; i++) {
-			if (ent == mobs[i])
-				mobs.splice(i, 1)
-		}
+	Resources.NONE = GUI.createDrawable("NOSCREEN.png");
+	Resources.READY = GUI.createDrawable("LOCKREADY.png");
+
+	Resources.ACTIVE_ANIMATED = new android.graphics.drawable.AnimationDrawable();
+	Resources.ACTIVE_ANIMATED.setOneShot(true);
+	Resources.ACTIVE_ANIMATED.setVisible(true, true);
+
+	for(var index = 0; index < 60; index++){
+		Resources.ACTIVE_ANIMATED.addFrame(GUI.createDrawable("LOCKON/LOCK" + index + ".png"), 32);
 	}
+
+	GUI.create();
+
+	runOnUiThread(function(){
+		android.widget.Toast.makeText(ctx, "© 2014 ChalkPE. All rights reserved.", 1).show();
+	});
+});}
+
+function finalize(){
+	GUI.remove();
+	Resources.finishMusic();
 }
 
-function decodePNG(url, filename) {
-	var file = java.io.File(url + filename);
-	if (file.exists() == false) {
-		clientMessage("<setGUI> " + filename + " 이미지파일이 존재하지않습니다!");
-		return 0;
+
+
+
+
+function getCoordinateArray(ent){
+	return [Entity.getX(ent), Entity.getY(ent), Entity.getZ(ent)];
+}
+
+function killEntity(ent){
+	Entity.setHealth(ent, 1);
+	Entity.setFireTicks(ent, 15);
+
+	var blockId = Level.getTile.apply(null, getCoordinateArray(ent));
+	if(Entity.getEntityTypeId(ent) === 36 || (blockId === 8 || blockId === 9)){
+		Entity.setHealth(ent, 0);
 	}
-	try {
-		var option = android.graphics.BitmapFactory.Options();
-		option.inSampleSize = 4;
-		var bitmap = android.graphics.BitmapFactory.decodeFile(url + filename, option);
-		var bitmap_width = Math.ceil((bitmap.getWidth()) * ctx.getResources().getDisplayMetrics().density);
-		var bitmap_height = Math.ceil((bitmap.getHeight()) * ctx.getResources().getDisplayMetrics().density);
-		scaledbitmap = android.graphics.Bitmap.createScaledBitmap(bitmap, bitmap_width, bitmap_height, false);
-	} catch (e) {
-		clientMessage("<setGUI>" + filename + " 화면해상도가 호환되지않습니다! :" + e);
-		return 0;
-	}
-	return scaledbitmap;
+
+	Level.playSound(Entity.getX(ent), Entity.getY(ent), Entity.getZ(ent), "random.explode", 2, 1);
 }
 
-function changeGUI(bitmap) {
-	ctx.runOnUiThread(new java.lang.Runnable({
-			run : function () {
-				try {
-					imageViewA.setImageBitmap(bitmap);
-				} catch (e) {}
-			}
-		}));
+function isClose(a, b, length){
+	return Math.abs(a[0] - b[0]) < length &&
+	Math.abs(a[1] - b[1]) < length &&
+	Math.abs(a[2] - b[2]) < length;
 }
 
-function setGUI(touchable, scaledbitmap) {
-	ctx.runOnUiThread(new java.lang.Runnable({
-			run : function () {
-				try {
-					var flayout = new android.widget.FrameLayout(ctx);
-					flayout.setLayoutParams(new android.widget.FrameLayout.LayoutParams
-						(android.widget.FrameLayout.LayoutParams.MATCH_PARENT, android.widget.FrameLayout.LayoutParams.MATCH_PARENT));
+function getLookingEntity(){
+	try{
+		var radian =  1 / 180 * Math.PI;
+		var player = Player.getEntity();
 
-					var imageParams = new android.widget.FrameLayout.LayoutParams
-						(android.widget.FrameLayout.LayoutParams.WRAP_CONTENT, android.widget.FrameLayout.LayoutParams.WRAP_CONTENT);
+		var centerX = Entity.getX(player),
+		centerY = Entity.getY(player),
+		centerZ = Entity.getZ(player);
 
-					imageViewA = new android.widget.ImageView(ctx);
-					imageViewA.setLayoutParams(imageParams);
-					imageViewA.setImageBitmap(scaledbitmap);
+		var yaw = Entity.getYaw(player),
+		pitch = Entity.getPitch(player);
 
-					flayout.addView(imageViewA);
+		for(var radius = 0; radius < 100; radius += 2){
+			var coordinate = [
+			                  Math.floor(centerX + radius * -Math.sin(yaw * radian) * Math.cos(pitch * radian)),
+			                  Math.floor(centerY + radius * -Math.sin(pitch * radian)),
+			                  Math.floor(centerZ + radius * Math.cos(yaw * radian) * Math.cos(pitch * radian))
+			                  ];
 
-					GUIWindow = new android.widget.PopupWindow(flayout, ctx.getWindowManager().
-							getDefaultDisplay().getWidth(), ctx.getWindowManager().getDefaultDisplay().getHeight(), true);
+			var entites = Entity.getAll();
 
-					if (touchable == 1) {
-						GUIWindow.setTouchable(false);
-						GUIWindow.setFocusable(false);
-						GUIWindow.setOutsideTouchable(true);
-					}
-
-					GUIWindow.showAtLocation(ctx.getWindow().getDecorView(), android.view.Gravity.CENTER, 0, 0);
-				} catch (e) {
-					clientMessage("<setGUI> 로딩실패: " + e);
-					return 0;
+			for(var i = 0; i < entites.length; i++){
+				if(entites[i] !== player && Entity.getEntityTypeId(entites[i]) < 64 && 
+						isClose(getCoordinateArray(entites[i]), coordinate, 2)){
+					return entites[i];
 				}
 			}
-		}));
-}
-
-function endGUI() {
-	ctx.runOnUiThread(new java.lang.Runnable({
-			run : function () {
-				try {
-					if (GUIWindow != null) {
-						GUIWindow.dismiss();
-						GUIWindow = null;
-					}
-				} catch (e) {}
-			}
-		}));
-}
-
-function setBGM(sndname, BGMPath) {
-	var file = java.io.File(BGMPath + sndname);
-	if (file.exists() == false) {
-		clientMessage(sndname + "<setGUI> 음악파일이 존재하지않습니다!");
-		return 0;
-	}
-
-	var path = BGMPath + sndname;
-	try {
-		if (mPlayer.isPlaying())
-			mPlayer.pause();
-		mPlayer.reset();
-		mPlayer.setDataSource(path);
-		mPlayer.prepare();
-		mPlayer.start();
-	} catch (err) {
-		clientMessage("지원되지않는 음악파일입니다!");
+		}
+		return null;
+	}catch(e){
+		return null;
 	}
 }
 
-function endBGM() {
-	ctx.runOnUiThread(new java.lang.Runnable({
-			run : function () {
-				try {
-					if (mPlayer != null) {
-						mPlayer.release();
-						mPlayer = null;
-					}
-				} catch (e) {}
-			}
-		}));
+function onTick(){
+	var enabled = (Player.getCarriedItem() === 261);
+
+	if(Conditions.enabled === false && enabled === false){ //NONE -> NONE
+
+	}else if(Conditions.enabled === true && enabled === false){ //READY -> NONE
+		Resources.stopMusic();
+		GUI.setImage(Resources.NONE);
+		runOnUiThread(function(){
+			Resources.ACTIVE_ANIMATED.stop();
+		});
+
+		Conditions.enabled = enabled;
+		Conditions.activated = false;
+	}else if(Conditions.enabled === false && enabled === true){ //NONE -> READY
+		GUI.setImage(Resources.READY);
+
+		Conditions.enabled = enabled;
+		Conditions.activated = false;
+	}else{
+		var looking = getLookingEntity();
+		var activated = looking !== null;
+
+		if(Conditions.activated === false && activated === true){ //READY -> ACTIVATED
+			Resources.startMusic("lockon.mp3");
+
+			GUI.setImage(Resources.ACTIVE_ANIMATED);
+			runOnUiThread(function(){
+				Resources.ACTIVE_ANIMATED.start();
+			});
+
+			Conditions.activated = activated;
+		}else if(Conditions.activated === true && activated === false){ //ACTIVATED -> READY
+			Resources.stopMusic();
+
+			GUI.setImage(Resources.READY);
+			runOnUiThread(function(){
+				Resources.ACTIVE_ANIMATED.stop();
+			});
+
+			Conditions.activated = activated;
+		}
+	}
+}
+
+function onArrowShot(ent){
+	if(Conditions.activated === false){
+		return;
+	}
+
+	if(isClose(getCoordinateArray(ent), getCoordinateArray(Player.getEntity()), 2) === false){
+		//플레이어와 2블럭 이상 떨어진 곳에서 스폰된 화살은 무시
+		return;
+	}
+
+	var looking = getLookingEntity();
+	if(looking !== null){
+		Entity.remove(ent);
+		killEntity(looking);
+	}
+}
+
+
+
+
+
+function newLevel(){
+	init();
+}
+
+function leaveGame(){
+	finalize();
+}
+
+function modTick(){
+	if(--tick){return;} tick = 10;
+	runOnThread(onTick);
+}
+
+function entityAddedHook(ent){
+	if(Entity.getEntityTypeId(ent) == 80){
+		onArrowShot(ent);
+	}
 }
