@@ -599,7 +599,7 @@ class SimpleArea extends PluginBase implements Listener {
 			$this->alert ( $player, "영역 안에서만 집구매 명령 사용이 가능 !" );
 			return false;
 		} else {
-			if ($area ["resident"] == null) {
+			if ($area ["resident"] [0] == null) {
 				if ($this->checkEconomyAPI ()) {
 					$money = $this->economyAPI->myMoney ( $player );
 					if ($money < 5000) {
@@ -1115,7 +1115,7 @@ class SimpleArea extends PluginBase implements Listener {
 			$this->message ( $player, "다른 유저의 영역과 겹칩니다, 설정불가 !" );
 		} else {
 			foreach ( $this->config_Data ["default-protect-blocks"] as $protect_block )
-			$this->message ( $player, "성공적으로 집을 구매했습니다 !" );
+				$this->message ( $player, "성공적으로 집을 구매했습니다 !" );
 			if ($this->checkEconomyAPI ()) {
 				$this->economyAPI->reduceMoney ( $player, $this->config_Data ["economy-home-price"] );
 				$this->message ( $player, "집 구매가격 " . $this->config_Data ["economy-home-price"] . "$ 가 지불 되었습니다 !" );
