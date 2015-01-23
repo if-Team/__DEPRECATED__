@@ -50,7 +50,7 @@ class EconomyEntities extends PluginBase implements Listener {
 	/*
 	 * @var YML File variable
 	 */
-	public $configyml, $config;
+	public $configyml, $config, $rewardList;
 	/*
 	 * @var Bot Spawn locate list
 	 */
@@ -83,6 +83,28 @@ class EconomyEntities extends PluginBase implements Listener {
 				"RespawnTime" => 20,
 				"BotSpawnCount" => 0,
 				"Reward-DelayTime" => 60 ) );
+		$this->rewardList = new Config ( $this->getDataFolder () . "rewardList.yml", Config::YAML, array (
+				"chickin-item-id" => Item::EGG,
+				"chickin-item-count" => 1,
+				"villager-item-id" => [ 
+						Item::WOOD,
+						Item::WORKBENCH,
+						Item::SNOW,
+						Item::CLAY,
+						Item::HAY_BALE,
+						Item::SIGN,
+						Item::MELON_SLICE,
+						Item::COOKED_PORKCHOP,
+						Item::WOODEN_AXE ],
+				"villager-item-count" => 1,
+				"skelleton-item-id" => Item::BONE,
+				"skelleton-item-count" => 1,
+				"pig-item-id" => Item::RAW_PORKCHOP,
+				"pig-item-count" => 1,
+				"cow-item-id" => Item::RAW_BEEF,
+				"cow-item-count" => 1,
+				"sheep-item-id" => Item::WOOL,
+				"sheep-item-count" => 1 ) );
 		$this->config = $this->configyml->getAll ();
 		$this->initSpawn ();
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
@@ -122,7 +144,7 @@ class EconomyEntities extends PluginBase implements Listener {
 					if (! isset ( $this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()] )) {
 						if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 						$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
-						$event->getDamager ()->getInventory ()->addItem ( Item::get ( Item::EGG ) );
+						$event->getDamager ()->getInventory ()->addItem ( Item::get ( $this->rewardList ["chickin-item-id"] ), 0, $this->rewardList ["chickin-item-count"] );
 						$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-egg" ) );
 						$this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
 					} else {
@@ -134,7 +156,7 @@ class EconomyEntities extends PluginBase implements Listener {
 						} else {
 							if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 							$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
-							$event->getDamager ()->getInventory ()->addItem ( Item::get ( Item::EGG ) );
+							$event->getDamager ()->getInventory ()->addItem ( Item::get ( $this->rewardList ["chickin-item-id"] ), 0, $this->rewardList ["chickin-item-count"] );
 							$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-egg" ) );
 							unset ( $this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()] );
 						}
@@ -146,7 +168,7 @@ class EconomyEntities extends PluginBase implements Listener {
 						$event->setDamage ( 0 );
 						if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 						$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
-						$event->getDamager ()->getInventory ()->addItem ( Item::get ( Item::RAW_BEEF ) );
+						$event->getDamager ()->getInventory ()->addItem ( Item::get ( $this->rewardList ["cow-item-id"] ), 0, $this->rewardList ["cow-item-count"] );
 						$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-steak" ) );
 						$this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
 					} else {
@@ -160,7 +182,7 @@ class EconomyEntities extends PluginBase implements Listener {
 							$event->setDamage ( 0 );
 							if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 							$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
-							$event->getDamager ()->getInventory ()->addItem ( Item::get ( Item::RAW_BEEF ) );
+							$event->getDamager ()->getInventory ()->addItem ( Item::get ( $this->rewardList ["cow-item-id"] ), 0, $this->rewardList ["cow-item-count"] );
 							$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-steak" ) );
 							unset ( $this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()] );
 						}
@@ -171,7 +193,7 @@ class EconomyEntities extends PluginBase implements Listener {
 						$event->setDamage ( 0 );
 						if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 						$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
-						$event->getDamager ()->getInventory ()->addItem ( Item::get ( Item::RAW_PORKCHOP ) );
+						$event->getDamager ()->getInventory ()->addItem ( Item::get ( $this->rewardList ["pig-item-id"] ), 0, $this->rewardList ["pig-item-count"] );
 						$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-pork" ) );
 						$this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
 					} else {
@@ -185,7 +207,7 @@ class EconomyEntities extends PluginBase implements Listener {
 							$event->setDamage ( 0 );
 							if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 							$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
-							$event->getDamager ()->getInventory ()->addItem ( Item::get ( Item::RAW_PORKCHOP ) );
+							$event->getDamager ()->getInventory ()->addItem ( Item::get ( $this->rewardList ["pig-item-id"] ), 0, $this->rewardList ["pig-item-count"] );
 							$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-pork" ) );
 							unset ( $this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()] );
 						}
@@ -195,7 +217,7 @@ class EconomyEntities extends PluginBase implements Listener {
 					if (! isset ( $this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()] )) {
 						if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 						$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
-						$event->getDamager ()->getInventory ()->addItem ( Item::get ( Item::WOOL ) );
+						$event->getDamager ()->getInventory ()->addItem ( Item::get ( $this->rewardList ["sheep-item-id"] ), 0, $this->rewardList ["sheep-item-count"] );
 						$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-wool" ) );
 						$this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()] = $this->makeTimestamp ( date ( "Y-m-d H:i:s" ) );
 					} else {
@@ -207,7 +229,7 @@ class EconomyEntities extends PluginBase implements Listener {
 						} else {
 							if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 							$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
-							$event->getDamager ()->getInventory ()->addItem ( Item::get ( Item::WOOL ) );
+							$event->getDamager ()->getInventory ()->addItem ( Item::get ( $this->rewardList ["sheep-item-id"] ), 0, $this->rewardList ["sheep-item-count"] );
 							$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-wool" ) );
 							unset ( $this->damage_delay [$event->getDamager ()->getName ()] [$event->getEntity ()->getId ()] );
 						}
@@ -218,7 +240,7 @@ class EconomyEntities extends PluginBase implements Listener {
 					if ($event->getEntity ()->getHealth () - $event->getDamage () <= 0) {
 						if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 						$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
-						$event->getDamager ()->getInventory ()->addItem ( Item::get ( array_rand ( $this->villager_item ), 0, 1 ) );
+						$event->getDamager ()->getInventory ()->addItem ( Item::get ( array_rand ( $this->rewardList ["villager-item-id"] ), 0, $this->rewardList ["villager-item-count"] ) );
 						$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-villager-item" ) );
 					}
 					break;
@@ -226,7 +248,7 @@ class EconomyEntities extends PluginBase implements Listener {
 					if ($event->getEntity ()->getHealth () - $event->getDamage () <= 0) {
 						if ($this->dead_id [$event->getDamager ()->getName ()] == $event->getEntity ()->getId ()) return;
 						$this->dead_id [$event->getDamager ()->getName ()] = $event->getEntity ()->getId ();
-						$event->getDamager ()->getInventory ()->addItem ( Item::get ( Item::BONE, 0, 3 ) );
+						$event->getDamager ()->getInventory ()->addItem ( Item::get ( $this->rewardList ["skelleton-item-id"] ), 0, $this->rewardList ["skelleton-item-count"] );
 						$event->getDamager ()->sendMessage ( TextFormat::DARK_AQUA . $this->get ( "success-get-skelleton-item" ) );
 					}
 			}
