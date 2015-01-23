@@ -55,7 +55,6 @@ class SimpleArea extends PluginBase implements Listener {
 				"economy-home-reward-price" => 2500,
 				"default-prefix" => $this->get ( "default-prefix" ),
 				"welcome-prefix" => $this->get ( "welcome-prefix" ),
-				"default-wall-type" => 139,
 				"default-protect-blocks" => [ 
 						139 ] ] );
 		$this->config_Data = $this->config->getAll ();
@@ -1114,8 +1113,7 @@ class SimpleArea extends PluginBase implements Listener {
 		if ($area_id == false) {
 			$this->message ( $player, "다른 유저의 영역과 겹칩니다, 설정불가 !" );
 		} else {
-			foreach ( $this->config_Data ["default-protect-blocks"] as $protect_block )
-				$this->message ( $player, "성공적으로 집을 구매했습니다 !" );
+			$this->message ( $player, "성공적으로 집을 구매했습니다 !" );
 			if ($this->checkEconomyAPI ()) {
 				$this->economyAPI->reduceMoney ( $player, $this->config_Data ["economy-home-price"] );
 				$this->message ( $player, "집 구매가격 " . $this->config_Data ["economy-home-price"] . "$ 가 지불 되었습니다 !" );
@@ -1134,8 +1132,6 @@ class SimpleArea extends PluginBase implements Listener {
 		if ($area_id == false) {
 			$this->message ( $player, "다른 유저의 영역과 겹칩니다, 설정불가 !" );
 		} else {
-			foreach ( $this->config_Data ["default-protect-blocks"] as $protect_block )
-				$this->db [$player->level->getFolderName ()]->addOption ( $area_id, $protect_block );
 			$this->message ( $player, "성공적으로 집을 생성했습니다 !" );
 		}
 	}
