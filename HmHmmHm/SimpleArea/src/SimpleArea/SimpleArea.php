@@ -55,8 +55,7 @@ class SimpleArea extends PluginBase implements Listener {
 				"economy-home-reward-price" => 2500,
 				"default-prefix" => $this->get ( "default-prefix" ),
 				"welcome-prefix" => $this->get ( "welcome-prefix" ),
-				"default-protect-blocks" => [ 
-						139 ] ] );
+				"default-wall-type" => 139 ] );
 		$this->config_Data = $this->config->getAll ();
 		
 		foreach ( $this->getServer ()->getLevels () as $level )
