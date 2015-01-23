@@ -527,17 +527,17 @@ class SimpleArea extends PluginBase implements Listener {
 				return true;
 			}
 			$pos = $this->areaPosCast ( $this->make_Queue [$player->getName ()] ["pos1"], $this->make_Queue [$player->getName ()] ["pos2"] );
-			$checkOverapArea = $this->db [$player->getLevel ()->getFolderName ()]->checkAllSameOverlap ( $pos [0], $pos [1], $pos [2], $pos [3] );
+			$checkOverapArea = $this->db [$player->getLevel ()->getFolderName ()]->checkOverlap ( $pos [0], $pos [1], $pos [2], $pos [3] );
 			if ($checkOverapArea != false) {
 				if (! isset ( $this->make_Queue [$player->getName ()] ["overrap"] )) {
-					$this->message ( $player, "해당영역에 완전히 겹치는 영역이 감지되었습니다! ( ID: " . $checkOverapArea ["ID"] . ")" );
-					$this->message ( $player, "겹치는 영역설정을 삭제하고 이 영역을 생성할까요?" );
+					$this->message ( $player, "해당영역에 중복되는 영역이 감지되었습니다! ( ID: " . $checkOverapArea ["ID"] . ")" );
+					$this->message ( $player, "겹치는 영역설정들을 삭제하고 이 영역을 생성할까요?" );
 					$this->message ( $player, "( 예:/sa make 아니요: /sa cancel )" );
 					$this->make_Queue [$player->getName ()] ["overrap"] = true;
 					return true;
 				} else {
 					while ( 1 ) {
-						$checkOverapArea = $this->db [$player->getLevel ()->getFolderName ()]->checkAllSameOverlap ( $pos [0], $pos [1], $pos [2], $pos [3] );
+						$checkOverapArea = $this->db [$player->getLevel ()->getFolderName ()]->checkOverlap ( $pos [0], $pos [1], $pos [2], $pos [3] );
 						if ($checkOverapArea == false) break;
 						$this->db [$player->getLevel ()->getFolderName ()]->removeAreaById ( $checkOverapArea ["ID"] );
 						$this->message ( $player, $checkOverapArea ["ID"] . "번 영역을 삭제했습니다." );
