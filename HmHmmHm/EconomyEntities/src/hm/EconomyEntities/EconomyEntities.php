@@ -73,7 +73,7 @@ class EconomyEntities extends PluginBase implements Listener {
 				"RespawnTime" => 20,
 				"BotSpawnCount" => 0,
 				"Reward-DelayTime" => 60 ) );
-		$this->rewardList = new Config ( $this->getDataFolder () . "rewardList.yml", Config::YAML, array (
+		$this->rewardList = (new Config ( $this->getDataFolder () . "rewardList.yml", Config::YAML, array (
 				"chickin-item-id" => Item::EGG,
 				"chickin-item-count" => 1,
 				"villager-item-id" => [ 
@@ -94,7 +94,7 @@ class EconomyEntities extends PluginBase implements Listener {
 				"cow-item-id" => Item::RAW_BEEF,
 				"cow-item-count" => 1,
 				"sheep-item-id" => Item::WOOL,
-				"sheep-item-count" => 1 ) );
+				"sheep-item-count" => 1 ) ))->getAll ();
 		$this->config = $this->configyml->getAll ();
 		$this->initSpawn ();
 		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new CallbackTask ( [ 
