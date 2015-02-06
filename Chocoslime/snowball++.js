@@ -1,3 +1,5 @@
+//if-Team | Choseul
+
 var typeId = Entity.getEntityTypeId;
 var ctx = com.mojang.minecraftpe.MainActivity.currentMainActivity.get();
 var s = {
