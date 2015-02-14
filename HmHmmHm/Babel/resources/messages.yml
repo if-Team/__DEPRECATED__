@@ -32,6 +32,7 @@ translation:
    "Reason:": "사유:"
    "$this->server->broadcastMessage($ev->getQuitMessage());": ""
    "] logged out due to": "] 님이 로그아웃했습니다"
+   "if(!$revert and !$this->isSleeping()){": "if(false){"
    "$message = $this->getName() . \" died\";": "$message = $this->getName() . \" 님이 사망했습니다\";"
    "$message = $this->getName() . \" was killed by \" . $e->getName();": "$message = $this->getName() . \"님이 \" . $e->getName() . \"님에게 살해당했습니다\";"
    "$message = $this->getName() . \" was slain by \" . $e->getName();": "$message = $this->getName() . \"님이 \" . $e->getName() . \"에게 살해당했습니다\";"
