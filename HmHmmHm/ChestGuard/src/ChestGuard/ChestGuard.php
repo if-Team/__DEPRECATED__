@@ -26,6 +26,19 @@ class ChestGuard extends PluginBase implements Listener {
 	public function onPlace(BlockPlaceEvent $event) {
 		if ($event->getBlock ()->getId () != Block::CHEST) return;
 		$block = $event->getBlock ();
+	
+		
+		if(($event->getBlock()->getLevel()->getBlockIdAt($block->x + 1, $block->y, $block->z) == Block::CHEST ) or
+			$event->getBlock()->getLevel()->getBlockIdAt($block->x - 1, $block->y, $block->z) == Block::CHEST or
+			$event->getBlock()->getLevel()->getBlockIdAt($block->x, $block->y, $block->z + 1) == Block::CHEST or
+			$event->getBlock()->getLevel()->getBlockIdAt($block->x, $block->y, $block->z - 1) == Block::CHEST){
+			
+			if(isset($this->configData ["{$block->x}:{$block->y}:{$block->z}"]) and
+				$this->configData ["{$block->x}:{$block->y}:{$block->z}"] != $event->getPlayer ()->getName ()){
+				$event->getPlayer()->sendMessage(TextFormat::RED . "바로 옆에 다른사람의 상자가 있습니다, 설치 불가능 !");
+				return;
+			}
+		}
 		$this->configData ["{$block->x}:{$block->y}:{$block->z}"] = $event->getPlayer ()->getName ();
 	}
 	public function onBreak(BlockBreakEvent $event) {
