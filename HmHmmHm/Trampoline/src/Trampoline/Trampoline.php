@@ -19,20 +19,104 @@ class Trampoline extends PluginBase implements Listener {
 		$player = $event->getPlayer ();
 		
 		if ($player == null) return;
-		
 		if ($player->getLevel () == null) return;
 		
+		// under
 		$x = ( int ) round ( $player->x - 0.5 );
 		$y = ( int ) round ( $player->y - 1 );
 		$z = ( int ) round ( $player->z - 0.5 );
 		
-		$block = $player->getLevel ()->getBlock ( new Vector3 ( $x, $y, $z ) );
+		$id = $player->getLevel ()->getBlockIdAt ( $x, $y, $z );
+		$data = $player->getLevel ()->getBlockDataAt ( $x, $y, $z );
 		
-		if ($block->getID () == 35 and $block->getDamage () == 5) {
+		if ($id == 35 and $data == 5) {
 			$this->fallenQueue ( $player );
 			$player->addEntityMotion ( 0, 0, 10, 0 );
+		} else if ($id == 35 and $data == 4) {
+			$this->fallenQueue ( $player );
+			$player->addEntityMotion ( 0, 0, 1, 0 );
+		} else if ($id and $data == 10) {
+			$this->fallenQueue ( $player );
+			$player->addEntityMotion ( 0, 0, 20, 0 );
+		} else {
+			// right
+			$x = ( int ) round ( $player->x - 1.5 );
+			$y = ( int ) round ( $player->y );
+			$z = ( int ) round ( $player->z - 0.5 );
+			
+			$id = $player->getLevel ()->getBlockIdAt ( $x, $y, $z );
+			$data = $player->getLevel ()->getBlockDataAt ( $x, $y, $z );
+			
+			if ($id == 35 and $data == 5) {
+				$this->fallenQueue ( $player );
+				$player->addEntityMotion ( 0, + 10, 0, 0 );
+			} else if ($id == 35 and $data == 4) {
+				$this->fallenQueue ( $player );
+				$player->addEntityMotion ( 0, + 1, 0, 0 );
+			} else if ($id and $data == 10) {
+				$this->fallenQueue ( $player );
+				$player->addEntityMotion ( 0, + 20, 0, 0 );
+			} else {
+				// left
+				$x = ( int ) round ( $player->x + 0.5 );
+				$y = ( int ) round ( $player->y );
+				$z = ( int ) round ( $player->z - 0.5 );
+				
+				$id = $player->getLevel ()->getBlockIdAt ( $x, $y, $z );
+				$data = $player->getLevel ()->getBlockDataAt ( $x, $y, $z );
+				
+				if ($id == 35 and $data == 5) {
+					$this->fallenQueue ( $player );
+					$player->addEntityMotion ( 0, - 10, 0, 0 );
+				} else if ($id == 35 and $data == 4) {
+					$this->fallenQueue ( $player );
+					$player->addEntityMotion ( 0, - 1, 0, 0 );
+				} else if ($id and $data == 10) {
+					$this->fallenQueue ( $player );
+					$player->addEntityMotion ( 0, - 20, 0, 0 );
+				} else {
+					// north
+					$x = ( int ) round ( $player->x - 0.5 );
+					$y = ( int ) round ( $player->y );
+					$z = ( int ) round ( $player->z - 1.5 );
+					
+					$id = $player->getLevel ()->getBlockIdAt ( $x, $y, $z );
+					$data = $player->getLevel ()->getBlockDataAt ( $x, $y, $z );
+					
+					if ($id == 35 and $data == 5) {
+						$this->fallenQueue ( $player );
+						$player->addEntityMotion ( 0, 0, 0, + 10 );
+					} else if ($id == 35 and $data == 4) {
+						$this->fallenQueue ( $player );
+						$player->addEntityMotion ( 0, 0, 0, + 1 );
+					} else if ($id and $data == 10) {
+						$this->fallenQueue ( $player );
+						$player->addEntityMotion ( 0, 0, 0, + 20 );
+					} else {
+						// north
+						$x = ( int ) round ( $player->x - 0.5 );
+						$y = ( int ) round ( $player->y );
+						$z = ( int ) round ( $player->z + 0.5 );
+						
+						$id = $player->getLevel ()->getBlockIdAt ( $x, $y, $z );
+						$data = $player->getLevel ()->getBlockDataAt ( $x, $y, $z );
+						
+						if ($id == 35 and $data == 5) {
+							$this->fallenQueue ( $player );
+							$player->addEntityMotion ( 0, 0, 0, - 10 );
+						} else if ($id == 35 and $data == 4) {
+							$this->fallenQueue ( $player );
+							$player->addEntityMotion ( 0, 0, 0, - 1 );
+						} else if ($id and $data == 10) {
+							$this->fallenQueue ( $player );
+							$player->addEntityMotion ( 0, 0, 0, - 20 );
+						}
+					}
+				}
+			}
 		}
 	}
+	public function check() {}
 	public function fallenQueue(Player $player) {
 		if ($player == null) return;
 		if (isset ( $this->fallen [$player->getName ()] )) {
@@ -49,11 +133,6 @@ class Trampoline extends PluginBase implements Listener {
 				$event->setDamage ( 0 );
 				$this->fallen [$event->getEntity ()->getName ()] --;
 				if ($this->fallen [$event->getEntity ()->getName ()] == 0) unset ( $this->fallen [$event->getEntity ()->getName ()] );
-				
-				$reflection_class = new \ReflectionClass ( "\\pocketmine\\Player" );
-				$property = $reflection_class->getProperty ( 'inAirTicks' );
-				$property->setAccessible ( true );
-				$property->setValue ( $event->getEntity (), 0 );
 			}
 		}
 	}
